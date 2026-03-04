@@ -10,7 +10,7 @@ references:
 WendyOS is an Embedded Linux operating system for edge computing. It supports:
 - NVIDIA Jetson devices (production with OTA updates)
 - Raspberry Pi 4/5 (edge devices)
-- ARM64 VMs (development)
+- ARM64/AMD64 VMs (development)
 
 ## Learning About Wendy
 
@@ -27,11 +27,42 @@ Whenever you invoke a wendy command, use the JSON structure options to provide s
 ## Common Tasks
 
 - Run an app: `wendy run`
+- Create a new project: `wendy init`
 - Discover devices: `wendy discover`
 - Update agent: `wendy device update`
 - Configure WiFi: `wendy device wifi connect`
 - Install WendyOS on an external drive: `wendy os install`
 - Set a device as default using `wendy device set-default`
+
+### `wendy init` — Create a New Wendy Lite Project
+
+Creates a new Wendy Lite project with the required scaffolding:
+
+```bash
+wendy init
+```
+
+This sets up a new project directory with a `wendy.json` configuration file and the necessary structure for building and deploying a Wendy Lite app.
+
+### `wendy run` — Run a Wendy Lite Project
+
+Builds, uploads, and runs a Wendy Lite project on a connected device:
+
+```bash
+wendy run
+```
+
+This command handles the full development cycle: compiling the app, transferring the binary to the device, and starting execution. Use `--verbose` for detailed build output.
+
+### `wendy device wifi connect` — Set Up WiFi
+
+Configures WiFi credentials on a connected device:
+
+```bash
+wendy device wifi connect
+```
+
+This sends WiFi SSID and password to the device so it can connect to the local network. The device must be reachable over USB or an existing connection first.
 
 ## Setup and Configuration
 
