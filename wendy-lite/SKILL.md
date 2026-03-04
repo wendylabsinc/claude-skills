@@ -1,9 +1,10 @@
 ---
 name: wendy-lite
-description: 'Expert guidance on building WASM apps for Wendy Lite MCU firmware on ESP32-C6. Use when developers mention: (1) Wendy Lite or wendy-lite, (2) WASM apps on ESP32 or microcontrollers, (3) wendy.h or the wendy WASM module, (4) building C/Rust/Swift/Zig apps for ESP32, (5) WAMR runtime on embedded devices, (6) GPIO/I2C/SPI/UART/NeoPixel from WASM, (7) BLE provisioning on ESP32-C6, (8) uploading WASM binaries to MCU.'
+description: 'Expert guidance on building WASM apps for Wendy Lite MCU firmware on ESP32-C6. Use when developers mention: (1) Wendy Lite or wendy-lite, (2) WASM apps on ESP32 or microcontrollers, (3) WendyLite Swift package or import WendyLite, (4) building C/Rust/Swift/Zig apps for ESP32, (5) WAMR runtime on embedded devices, (6) GPIO/I2C/SPI/UART/NeoPixel from WASM, (7) Embedded Swift on WASM or wasm32-none-none-wasm, (8) BLE provisioning on ESP32-C6, (9) uploading WASM binaries to MCU, (10) TLS/networking on ESP32 from Swift.'
 references:
   - wasm-api.md
   - firmware-config.md
+  - swift-sdk.md
 ---
 
 # Wendy Lite
@@ -87,12 +88,38 @@ clang --target=wasm32 -O2 -nostdlib -I include \
   -o app.wasm app.c
 ```
 
+### Swift (Recommended for App Development)
+
+Swift apps use the **WendyLite** Swift package from https://github.com/wendylabsinc/wendy-lite, which provides type-safe wrappers around all WASM host imports.
+
+**See `references/swift-sdk.md` for the complete Swift API reference, Package.swift setup, and examples.**
+
+Key points:
+- Requires Swift 6.0+ with Embedded Swift support
+- Uses `@_cdecl("_start")` for the WASM entry point
+- No heap allocation — use stack-allocated tuple buffers
+- `StaticString` only — no runtime string construction
+- Cast `UnsafePointer<UInt8>` to `UnsafePointer<CChar>` via `UnsafeRawPointer` for API calls
+- Build and deploy with `wendy run`
+
+Quick start:
+```swift
+import WendyLite
+
+@_cdecl("_start")
+func start() {
+    GPIO.configure(pin: 2, mode: .output)
+    GPIO.write(pin: 2, level: 1)
+    System.sleepMs(1000)
+    GPIO.write(pin: 2, level: 0)
+}
+```
+
 ### Other Languages
 
 | Language | Build Command | Requirements |
 |----------|---------------|--------------|
 | Rust | `make rust_blink` | rustup (not Homebrew Rust) |
-| Swift | `make swift_display` | Swift 6.0+ with `wasm32-none-none-wasm` target |
 | Zig | `make zig_blink` | Zig 0.13+ |
 | WAT | `make wat_blink` | WABT (wat2wasm) |
 
@@ -167,5 +194,6 @@ The project includes `wokwi.toml` and `diagram.json` for hardware simulation wit
 
 Load these files as needed for specific topics:
 
-- **`references/wasm-api.md`** - Complete WASM app API: all host imports, constants, callback system, per-subsystem function signatures and usage
+- **`references/swift-sdk.md`** - WendyLite Swift package: Package.swift setup, complete Swift API reference, Embedded Swift constraints, stack buffer patterns, code examples
+- **`references/wasm-api.md`** - Complete WASM app API: all host imports, constants, callback system, per-subsystem function signatures and usage (C-level)
 - **`references/firmware-config.md`** - ESP-IDF sdkconfig options, partition table, feature flags, memory tuning, component enable/disable
