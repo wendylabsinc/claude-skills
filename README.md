@@ -28,3 +28,91 @@ This repository contains two main components:
 
 1. **Skills** - Knowledge bases that provide expert guidance on Swift server topics
 2. **swift-server-lint** - A linting tool that enforces best practices from the skills
+
+## Setup with Claude Code
+
+### 1. Install Skills
+
+Clone this repository and symlink the skills into your Claude home directory:
+
+```bash
+git clone https://github.com/joannis/skills.git
+ln -s "$(pwd)/skills" ~/.claude/skills
+```
+
+Claude Code automatically loads skills from `~/.claude/skills/*/SKILL.md`.
+
+### 2. Build the Linter
+
+```bash
+cd skills/swift-server-lint
+swift build
+```
+
+### 3. Auto-Lint with a Hook
+
+Add a **PostToolUse hook** to `~/.claude/settings.json` so that `swift-server-lint` runs automatically after every `swift build`:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/swift-server-lint.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Then create `~/.claude/hooks/swift-server-lint.sh`:
+
+```bash
+#!/bin/bash
+INPUT=$(cat)
+COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
+
+if echo "$COMMAND" | grep -q 'swift build'; then
+  LINT_BIN=~/.claude/skills/swift-server-lint/.build/debug/swift-server-lint
+  if [ -x "$LINT_BIN" ]; then
+    OUTPUT=$("$LINT_BIN" 2>&1)
+    EXIT_CODE=$?
+    if [ $EXIT_CODE -ne 0 ]; then
+      echo "---"
+      echo "$OUTPUT"
+      echo "---"
+      echo '{"decision": "block", "reason": "swift-server-lint found issues. Fix them before continuing."}'
+    fi
+  fi
+fi
+exit 0
+```
+
+```bash
+chmod +x ~/.claude/hooks/swift-server-lint.sh
+```
+
+### 4. Allow the Linter in Permissions
+
+Add the linter to your project's `.claude/settings.local.json` so Claude can run it without prompting:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(.build/debug/swift-server-lint:*)"
+    ]
+  }
+}
+```
+
+### IDE Integration
+
+- **VS Code** - Install the "Claude Code" extension from the marketplace. All `~/.claude/` configuration (skills, hooks, settings) is shared automatically.
+- **Xcode** - No native extension. Use `claude` in a terminal alongside Xcode.

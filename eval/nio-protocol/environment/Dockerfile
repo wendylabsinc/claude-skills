@@ -1,0 +1,31 @@
+FROM swift-server-lint-eval-base
+
+# Create workspace with pre-scaffolded Package.swift
+RUN mkdir -p /workspace/Sources && \
+    cat > /workspace/Package.swift << 'EOF'
+// swift-tools-version: 6.0
+import PackageDescription
+
+let package = Package(
+    name: "nio-protocol",
+    platforms: [.macOS(.v14)],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0"),
+    ],
+    targets: [
+        .executableTarget(
+            name: "nio-protocol",
+            dependencies: [
+                .product(name: "NIO", package: "swift-nio"),
+                .product(name: "NIOCore", package: "swift-nio"),
+                .product(name: "NIOPosix", package: "swift-nio"),
+            ],
+            path: "Sources"
+        ),
+    ]
+)
+EOF
+
+# Pre-fetch dependencies
+WORKDIR /workspace
+RUN swift package resolve
