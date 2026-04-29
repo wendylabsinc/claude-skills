@@ -6,24 +6,26 @@ Swift Testing is the modern testing framework for Swift, included in Swift 6 too
 
 ### @Test Macro
 
-Mark functions as tests using the `@Test` attribute:
+Mark functions as tests using the `@Test` attribute. Prefer backtick-escaped, sentence-style function names so the function name is the test description:
 
 ```swift
 import Testing
 
-@Test func basicTest() {
+@Test
+func `basic test`() {
     #expect(1 + 1 == 2)
 }
 
-// With custom display name
-@Test("User can log in successfully")
-func userLogin() async throws {
+// Prefer a backtick-escaped function name over a separate display name
+@Test
+func `user can log in successfully`() async throws {
     let result = try await auth.login(user: "test", password: "secret")
     #expect(result.isSuccess)
 }
 
 // Async and throwing tests
-@Test func asyncTest() async throws {
+@Test
+func `fetches data asynchronously`() async throws {
     let data = try await fetchData()
     #expect(!data.isEmpty)
 }
@@ -156,11 +158,13 @@ Group related tests using structs or classes:
 ```swift
 @Suite("User Authentication")
 struct AuthenticationTests {
-    @Test func loginSucceeds() async throws {
+    @Test
+    func `login succeeds`() async throws {
         // ...
     }
 
-    @Test func loginFailsWithWrongPassword() async throws {
+    @Test
+    func `login fails with wrong password`() async throws {
         // ...
     }
 }
@@ -174,14 +178,14 @@ Create hierarchical test organization:
 struct UserTests {
     @Suite("Profile")
     struct ProfileTests {
-        @Test func updateName() { }
-        @Test func updateEmail() { }
+        @Test func `updates name`() { }
+        @Test func `updates email`() { }
     }
 
     @Suite("Settings")
     struct SettingsTests {
-        @Test func changePassword() { }
-        @Test func enableTwoFactor() { }
+        @Test func `changes password`() { }
+        @Test func `enables two factor`() { }
     }
 }
 ```
@@ -204,7 +208,8 @@ struct DatabaseTests {
         // Runs after each test (for classes/actors)
     }
 
-    @Test func queryReturnsResults() async throws {
+    @Test
+    func `query returns results`() async throws {
         let results = try await database.query("SELECT * FROM users")
         #expect(!results.isEmpty)
     }
@@ -228,7 +233,8 @@ actor CleanupTests {
         }
     }
 
-    @Test func writeFile() async throws {
+    @Test
+    func `writes file`() async throws {
         let url = URL(fileURLWithPath: "/tmp/test.txt")
         tempFiles.append(url)
         try "test".write(to: url, atomically: true, encoding: .utf8)
@@ -252,16 +258,16 @@ extension Tag {
 }
 
 @Test(.tags(.networking))
-func fetchUsers() async throws { }
+func `fetches users`() async throws { }
 
 @Test(.tags(.database, .slow))
-func migrateSchema() async throws { }
+func `migrates schema`() async throws { }
 
 // Apply to entire suite
 @Suite(.tags(.networking))
 struct APITests {
-    @Test func getUser() { }  // Inherits .networking tag
-    @Test func createUser() { }
+    @Test func `gets user`() { }  // Inherits .networking tag
+    @Test func `creates user`() { }
 }
 ```
 
@@ -272,35 +278,35 @@ Run tagged tests: `swift test --filter .tags:networking`
 ```swift
 // Enable based on condition
 @Test(.enabled(if: ProcessInfo.processInfo.environment["CI"] != nil))
-func ciOnlyTest() { }
+func `runs only in ci`() { }
 
 // Disable with reason
 @Test(.disabled("Waiting for backend fix"))
-func brokenTest() { }
+func `is disabled while waiting for backend fix`() { }
 
 // Platform-specific
 @Test(.enabled(if: Platform.current == .macOS))
-func macOnlyTest() { }
+func `runs only on macos`() { }
 ```
 
 ### Bug References
 
 ```swift
 @Test(.bug("https://github.com/org/repo/issues/123", "Flaky on CI"))
-func flakyTest() { }
+func `documents flaky ci behavior`() { }
 
 @Test(.bug("JIRA-456"))
-func knownIssueTest() { }
+func `documents known issue`() { }
 ```
 
 ### Time Limits
 
 ```swift
 @Test(.timeLimit(.seconds(5)))
-func quickTest() async { }
+func `completes quickly`() async { }
 
 @Test(.timeLimit(.minutes(1)))
-func longerTest() async { }
+func `allows longer execution`() async { }
 ```
 
 ### Serial Execution
@@ -310,9 +316,9 @@ By default, tests run in parallel. Use `.serialized` for tests that can't run co
 ```swift
 @Suite(.serialized)
 struct DatabaseMigrationTests {
-    @Test func migration1() { }  // Runs first
-    @Test func migration2() { }  // Runs after migration1
-    @Test func migration3() { }  // Runs after migration2
+    @Test func `runs first migration`() { }
+    @Test func `runs second migration`() { }
+    @Test func `runs third migration`() { }
 }
 ```
 
@@ -321,21 +327,21 @@ struct DatabaseMigrationTests {
 Run the same test with multiple inputs:
 
 ```swift
-@Test("Validates email format", arguments: [
+@Test(arguments: [
     "user@example.com",
     "test.name@domain.org",
     "valid+tag@mail.co"
 ])
-func validEmails(email: String) {
+func `validates email format`(email: String) {
     #expect(EmailValidator.isValid(email))
 }
 
-@Test("Rejects invalid emails", arguments: [
+@Test(arguments: [
     "not-an-email",
     "@missing-local.com",
     "missing-domain@"
 ])
-func invalidEmails(email: String) {
+func `rejects invalid emails`(email: String) {
     #expect(!EmailValidator.isValid(email))
 }
 ```
@@ -344,7 +350,7 @@ func invalidEmails(email: String) {
 
 ```swift
 @Test(arguments: [1, 2, 3], ["a", "b"])
-func combinations(number: Int, letter: String) {
+func `tests all combinations`(number: Int, letter: String) {
     // Runs for all combinations: (1,"a"), (1,"b"), (2,"a"), (2,"b"), (3,"a"), (3,"b")
     #expect(!"\(number)\(letter)".isEmpty)
 }
@@ -356,7 +362,7 @@ Avoid combinatorial explosion by zipping:
 
 ```swift
 @Test(arguments: zip([1, 2, 3], ["one", "two", "three"]))
-func numberNames(number: Int, name: String) {
+func `matches numbers to names`(number: Int, name: String) {
     // Runs for: (1,"one"), (2,"two"), (3,"three")
     #expect(name.count > 0)
 }
@@ -366,12 +372,12 @@ func numberNames(number: Int, name: String) {
 
 ```swift
 @Test(arguments: 1...10)
-func testRange(value: Int) {
+func `accepts values in range`(value: Int) {
     #expect(value > 0 && value <= 10)
 }
 
 @Test(arguments: Set(["apple", "banana", "cherry"]))
-func testSet(fruit: String) {
+func `accepts fruits from set`(fruit: String) {
     #expect(!fruit.isEmpty)
 }
 ```
@@ -396,7 +402,7 @@ extension User: CustomTestStringConvertible {
     User(id: 1, name: "Alice"),
     User(id: 2, name: "Bob")
 ])
-func userTest(user: User) {
+func `uses custom user descriptions`(user: User) {
     // Output shows "User(Alice)" instead of "User(id: 1, name: \"Alice\")"
     #expect(user.id > 0)
 }
@@ -410,12 +416,14 @@ Tests run in parallel by default. Each test gets an independent instance of the 
 struct CounterTests {
     var counter = 0  // Each test gets its own counter
 
-    @Test func increment() {
+    @Test
+    func `increments counter`() {
         counter += 1
         #expect(counter == 1)  // Always passes - isolated instance
     }
 
-    @Test func decrement() {
+    @Test
+    func `decrements counter`() {
         counter -= 1
         #expect(counter == -1)  // Always passes - isolated instance
     }
@@ -429,7 +437,7 @@ struct CounterTests {
 | XCTest | Swift Testing |
 |--------|---------------|
 | `XCTestCase` subclass | `@Suite` struct/class |
-| `func testExample()` | `@Test func example()` |
+| `func testExample()` | ``@Test func `example`()`` |
 | `XCTAssertEqual(a, b)` | `#expect(a == b)` |
 | `XCTAssertNil(x)` | `#expect(x == nil)` |
 | `XCTAssertThrowsError` | `#expect(throws:)` |
@@ -475,7 +483,8 @@ struct UserTests {
         sut = UserService()
     }
 
-    @Test func createUser() throws {
+    @Test
+    func `creates user`() throws {
         let user = try sut.create(name: "Test")
         #expect(user.name == "Test")
         #expect(user.id != nil)

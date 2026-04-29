@@ -17,6 +17,19 @@ Load these files as needed for specific topics:
 - **`references/swift-testing.md`** - Swift Testing framework: @Test macro, #expect/#require assertions, traits, parameterized tests, test suites, parallel execution, XCTest migration
 - **`references/debugging.md`** - Debugging tips: Terminal UI on Linux (alternate screen buffer), GitHub Actions log analysis
 
+### Swift Testing Test Names
+
+Prefer backtick-escaped, sentence-style test function names so the test description lives in the function name:
+
+```swift
+@Test
+func `does something very special in a certain edge case`() async throws {
+    // ...
+}
+```
+
+Use `@Test("...")` display names only when a separate display name is specifically needed.
+
 ### Access Modifiers
 
 Keep types and functions internal unless they need to be public for external use. This prevents accidental exposure of implementation details and makes access level errors easier to fix.
