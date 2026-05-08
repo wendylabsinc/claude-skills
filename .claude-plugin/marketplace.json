@@ -109,6 +109,13 @@
       "description": "Linting tool that enforces Swift server best practices from the skills",
       "category": "development",
       "keywords": ["swift", "linter", "best-practices", "code-quality"]
+    },
+    {
+      "name": "wendy-diagrams",
+      "source": "./wendy-diagrams",
+      "description": "D2 diagramming standards for Wendy repositories: colour classes, ELK layout rules, edge conventions, and CI setup",
+      "category": "productivity",
+      "keywords": ["d2", "diagrams", "architecture", "elk", "ci", "wendyos"]
     }
   ]
 }
