@@ -179,13 +179,61 @@ make test-services 2>&1 | tail -40
 3. Check Go services logs: `docker compose logs --since 10m services 2>/dev/null | grep -iE "error|fatal|panic" | tail -20`
 4. Run `wendy discover --json 2>&1 | head -10` — verify Gerrit (wendyos-gerrit.local) is reachable if hardware testing is the goal.
 
-### Fix guidelines
+### Fix workflow — worktree per fix, pull request required
 
-- If a test fails, read the error, find the relevant source file, diagnose root cause.
-- Apply fixes when confident (under 30 lines changed per fix).
-- Always re-run the specific failing test after fixing: `make test-swift FILTER=<TestName>`
-- Commit fixes: `git add <files> && git commit -m "fix: <description>"`
-- If a fix is more than 30 lines or touches multiple subsystems, open a Linear issue instead of fixing inline.
+Every code change follows this sequence. Do NOT commit directly to the current branch.
+
+**Step 1: Identify the current branch**
+```bash
+git -C /Users/wendy/Documents/Projects/cloud branch --show-current
+# Note this as BASE_BRANCH
+```
+
+**Step 2: Create a worktree for the fix**
+```bash
+BASE=/Users/wendy/Documents/Projects/cloud
+BRANCH=fix/<short-description>   # e.g. fix/nil-bool-cast
+git -C "$BASE" worktree add "$BASE/.worktrees/$BRANCH" -b "$BRANCH"
+```
+
+**Step 3: Dispatch a subagent to implement and test the fix in the worktree**
+
+Give the subagent:
+- The exact file(s) and line(s) to change
+- The root cause and the fix
+- Instructions to run `make test-swift FILTER=<TestName>` inside the worktree to verify
+- Instructions to commit once tests pass
+
+The subagent works entirely inside `$BASE/.worktrees/$BRANCH` and never touches the main checkout.
+
+**Step 4: UI smoke test**
+
+Before opening the pull request, verify the fix in the running dashboard:
+1. Ensure the full stack is up (`make dev` + `start-local.sh`)
+2. Use Chrome MCP to exercise the relevant flow in the browser (http://localhost:9200)
+3. Confirm no visible regressions
+
+**Step 5: Open a pull request and wait for CI**
+```bash
+cd "$BASE/.worktrees/$BRANCH"
+gh pr create --base BASE_BRANCH --title "fix: <description>" --body "..."
+gh pr checks --watch   # wait for all checks to pass
+```
+
+Do NOT proceed until `gh pr checks` reports all green. If CI fails, diagnose and push additional commits to the same branch.
+
+**Step 6: Merge and clean up**
+```bash
+gh pr merge --squash --delete-branch
+git -C "$BASE" worktree remove "$BASE/.worktrees/$BRANCH"
+```
+
+Only after the pull request is merged does the fix land on the current branch.
+
+**When to open a Linear issue instead of fixing inline:**
+- The fix touches more than 30 lines or spans multiple subsystems
+- Root cause is unclear after 15 minutes of investigation
+- Fix requires architectural changes
 
 ### Common failure modes
 
