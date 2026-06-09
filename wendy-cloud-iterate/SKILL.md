@@ -304,19 +304,34 @@ Give the subagent:
 
 The subagent works entirely inside `$BASE/.worktrees/$BRANCH` and never touches the main checkout.
 
-**Step 4: UI smoke test**
+**Step 4: UI smoke test and plan expansion**
 
-Before opening the pull request, run the UI smoke test plan against the running dashboard.
-The plan lives in the cloud repo at `docs/testing/ui-smoke-test.md`. Read it and execute
-the sections relevant to the change. At minimum, always run sections 1 (Authentication)
-and 6 (Console errors).
+The UI smoke test plan lives in the cloud repo and is meant to grow. Your job is not
+only to execute it but to expand it when you find gaps.
 
+Read the plan:
 ```bash
 cat /Users/wendy/Documents/Projects/cloud/docs/testing/ui-smoke-test.md
 ```
 
-Use Chrome MCP tools to drive the browser at http://localhost:9200. Take a screenshot
-after each section and attach it to the pull request body.
+**Execute:** Run all sections relevant to the change using Chrome MCP tools at
+http://localhost:9200. At minimum always run sections 1 (Authentication) and
+6 (Console errors). Take a screenshot after each section.
+
+**Expand:** After executing, identify gaps using the route grep in the plan's
+"Finding gaps" block:
+```bash
+grep -r "path:\|href=\|router.push\|<Link" \
+  /Users/wendy/Documents/Projects/cloud/dashboard/src \
+  --include="*.tsx" --include="*.ts" -h \
+  | grep -oE '"[/][^"]*"' | sort -u
+```
+Cross-reference with the coverage index table at the top of the plan. For any route
+or flow that appears in the source but not in the index, write a new section following
+the format in the "Adding new sections" block and add it to the plan file inside the
+current worktree. The additions travel with the pull request.
+
+Attach screenshots to the pull request body as evidence of each executed section.
 
 **Step 5: Open a pull request and wait for CI**
 ```bash
