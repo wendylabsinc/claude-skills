@@ -109,6 +109,13 @@
       "description": "Linting tool that enforces Swift server best practices from the skills",
       "category": "development",
       "keywords": ["swift", "linter", "best-practices", "code-quality"]
+    },
+    {
+      "name": "wendy-cloud-iterate",
+      "source": "./wendy-cloud-iterate",
+      "description": "Autonomous continuous integration loop for the Wendy Cloud repository: starts the dev stack, runs integration tests, diagnoses failures, and applies fixes",
+      "category": "development",
+      "keywords": ["wendy", "cloud", "swift-broker", "integration-testing", "autonomous", "iterate"]
     }
   ]
 }
