@@ -370,18 +370,55 @@ Only after the pull request is merged does the fix land on the current branch.
 
 ## Loop Behavior
 
-After each iteration:
-- If test failures were found and fixed: schedule next check in 5 minutes (short cycle to confirm fix held)
-- If test failures were found but not fixed: schedule next check in 10 minutes (give time for manual review)
-- If everything is clean: schedule next check in 30 minutes
+### Pacing
 
-Log a summary each iteration:
+After each iteration, schedule the next wake-up based on what was found:
+
+| Outcome | Next check |
+|---|---|
+| Failures found and fixed | 5 minutes (confirm the fix held) |
+| Failures found, not fixed | 10 minutes (allow time for manual review) |
+| Everything clean | 30 minutes |
+
+### Self-termination
+
+The loop terminates itself after **3 consecutive clean iterations** — no test
+failures, no broker errors, no new smoke test gaps, device reachable or skipped.
+
+To end the loop, simply do not schedule the next wake-up. Log a termination message
+and stop. The loop resumes on the next explicit `/loop` invocation.
+
 ```
-[wendy-cloud-iterate] Iteration complete.
-  Tests: N passed, M failed
+[wendy-cloud-iterate] 3 consecutive clean scans. Nothing left to fix.
+  Terminating loop. Run again with /loop to restart.
+```
+
+Track the consecutive clean count in the iteration summary. Reset it to 0 whenever
+a failure is found or a fix is applied, even if the fix succeeds.
+
+The threshold of 3 is intentional: one clean scan after a fix is not enough to
+confirm stability (the next test run could expose a regression the fix introduced).
+Three clean scans at 30-minute intervals means the stack has been stable for 90
+minutes, which is a reasonable confidence threshold before handing back control.
+
+If you want to run indefinitely (e.g. leaving the loop running overnight), pass
+`no-auto-terminate` as part of the invocation prompt:
+```
+/loop Use the wendy-cloud-iterate skill to continuously scan the Wendy Cloud
+repository. Do not auto-terminate.
+```
+
+### Iteration summary
+
+Log this at the end of every iteration:
+```
+[wendy-cloud-iterate] Iteration N complete.
+  Tests: X passed, Y failed
   Fixes applied: <list or "none">
+  Smoke test: <sections run> / <gaps added: N>
   Device: <reachable / unreachable / skipped>
-  Next check: Xm
+  Consecutive clean: Z/3
+  Next check: Xm  (or "loop terminated")
 ```
 
 ## Device Testing (optional)
