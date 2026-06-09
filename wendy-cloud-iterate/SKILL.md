@@ -7,6 +7,104 @@ description: 'Autonomous continuous integration loop for the Wendy Cloud reposit
 
 This skill drives an autonomous continuous loop that starts the Wendy Cloud dev stack, runs the integration test suite, diagnoses any failures, attempts fixes, and self-paces based on results.
 
+## Prerequisites Check
+
+Run this block at the very start of every session before touching any code or starting any service. Fix every gap before proceeding.
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+MISSING=()
+
+# --- Homebrew (needed to install everything else on macOS) ---
+if ! command -v brew &>/dev/null; then
+  echo "Installing Homebrew..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+# --- Docker Desktop ---
+if ! command -v docker &>/dev/null; then
+  echo "Docker not found. Install Docker Desktop from https://www.docker.com/products/docker-desktop/ then re-run."
+  MISSING+=("Docker Desktop")
+else
+  # Docker installed but daemon not running — start it
+  if ! docker info &>/dev/null 2>&1; then
+    echo "Starting Docker Desktop..."
+    open -a Docker
+    echo "Waiting for Docker to be ready..."
+    until docker info &>/dev/null 2>&1; do sleep 3; done
+    echo "Docker ready."
+  fi
+fi
+
+# --- GitHub CLI ---
+if ! command -v gh &>/dev/null; then
+  echo "Installing gh..."
+  brew install gh
+fi
+# Check auth
+if ! gh auth status &>/dev/null 2>&1; then
+  echo "gh is not authenticated. Run: gh auth login"
+  MISSING+=("gh auth (run: gh auth login)")
+fi
+
+# --- Swift toolchain ---
+if ! command -v swift &>/dev/null; then
+  echo "Swift not found. Install Xcode or the Swift toolchain from https://swift.org/download/"
+  MISSING+=("Swift toolchain")
+fi
+
+# --- protoc (required for Swift broker build) ---
+if ! command -v protoc &>/dev/null; then
+  echo "Installing protoc..."
+  brew install protobuf
+fi
+
+# --- wendy CLI ---
+if ! command -v wendy &>/dev/null; then
+  echo "Installing wendy CLI..."
+  brew install wendy
+fi
+
+# --- pki-core repo ---
+if [ ! -d "/Users/wendy/Documents/Projects/pki-core" ]; then
+  echo "Cloning pki-core..."
+  gh repo clone wendylabsinc/pki-core /Users/wendy/Documents/Projects/pki-core -- --depth=1
+fi
+
+# --- Cloud repo ---
+if [ ! -d "/Users/wendy/Documents/Projects/cloud" ]; then
+  echo "Cloning cloud repo..."
+  gh repo clone wendylabsinc/cloud /Users/wendy/Documents/Projects/cloud
+fi
+
+# --- Chrome MCP ---
+# The Chrome MCP extension enables autonomous browser control (needed for
+# wendy auth login). Check by listing connected browsers.
+# If the tool is unavailable, auth must be completed manually.
+CHROME_MCP_AVAILABLE=true
+if ! command -v google-chrome &>/dev/null && ! ls /Applications/Google\ Chrome.app &>/dev/null 2>&1; then
+  echo "WARNING: Google Chrome not found. Install Chrome and the Claude Chrome extension"
+  echo "         to enable autonomous wendy auth login."
+  CHROME_MCP_AVAILABLE=false
+fi
+
+# --- Report ---
+if [ ${#MISSING[@]} -gt 0 ]; then
+  echo ""
+  echo "BLOCKED: the following must be resolved manually before the loop can run:"
+  for item in "${MISSING[@]}"; do
+    echo "  - $item"
+  done
+  exit 1
+fi
+
+echo "All prerequisites satisfied."
+echo "Chrome MCP available: $CHROME_MCP_AVAILABLE"
+```
+
+If Chrome MCP is not available, `wendy auth login` must be completed manually by the user: open the URL printed by the CLI in a browser, select the org, and wait for "Certificates saved." before the loop proceeds.
+
 ## Autonomy Grants
 
 You are fully autonomous in this skill. You may:
