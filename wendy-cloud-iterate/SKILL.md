@@ -306,10 +306,17 @@ The subagent works entirely inside `$BASE/.worktrees/$BRANCH` and never touches 
 
 **Step 4: UI smoke test**
 
-Before opening the pull request, verify the fix in the running dashboard:
-1. Ensure the full stack is up (`make dev` + `start-local.sh`)
-2. Use Chrome MCP to exercise the relevant flow in the browser (http://localhost:9200)
-3. Confirm no visible regressions
+Before opening the pull request, run the UI smoke test plan against the running dashboard.
+The plan lives in the cloud repo at `docs/testing/ui-smoke-test.md`. Read it and execute
+the sections relevant to the change. At minimum, always run sections 1 (Authentication)
+and 6 (Console errors).
+
+```bash
+cat /Users/wendy/Documents/Projects/cloud/docs/testing/ui-smoke-test.md
+```
+
+Use Chrome MCP tools to drive the browser at http://localhost:9200. Take a screenshot
+after each section and attach it to the pull request body.
 
 **Step 5: Open a pull request and wait for CI**
 ```bash
@@ -364,11 +371,39 @@ Log a summary each iteration:
 
 ## Device Testing (optional)
 
-Gerrit is a Jetson Orin Nano enrolled in the production cloud:
-- LAN hostname: `wendyos-gerrit.local`
-- Production cloud org: 2, asset ID: 95
-- mTLS port post-enrollment: 50052
+Device tests verify that a real WendyOS device can be reached and responds correctly.
+They are optional — skip if no device is connected or if the production cert lacks
+`clientAuth` Extended Key Usage (a known cloud PKI bug).
 
-Check reachability: `wendy discover --json 2>&1 | head -10`
+### Identifying the device
 
-Device tests require the production cloud session (in `~/.wendy/config.json`) and a cert with `clientAuth` Extended Key Usage — currently blocked by a cloud PKI bug. Skip device tests if the production cert lacks clientAuth Extended Key Usage.
+**If a device was named in the conversation** (e.g. "use gerrit", "test against
+my Jetson"), use that hostname directly.
+
+**Otherwise, discover what is on the network:**
+```bash
+wendy discover --json 2>&1
+```
+
+In autonomous loop mode, use the first device returned by discover. If the list is
+empty, log "no device found — skipping device tests" and continue.
+
+In interactive mode (user is present), present the discovered list and ask which
+device to use before proceeding.
+
+**Store the chosen hostname as `DEVICE_HOST`** (just the hostname, no port):
+```bash
+DEVICE_HOST=<hostname>   # e.g. wendyos-gerrit.local or 192.168.1.42
+```
+
+### Running device checks
+```bash
+# Verify reachability on the plaintext port
+wendy discover --json 2>&1 | grep "$DEVICE_HOST"
+
+# Check device info (requires valid clientAuth cert)
+wendy cloud device info --device "$DEVICE_HOST" --json 2>&1 | head -20
+```
+
+If `device info` fails with "certificate is not valid for client authentication",
+skip the mTLS checks — this is the known production PKI bug, not a regression.
