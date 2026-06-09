@@ -16,7 +16,7 @@ You are fully autonomous in this skill. You may:
 - Run `wendy` CLI commands
 - Edit source files to fix bugs (commit the fix afterward)
 - Push commits to the current branch
-- Open PRs via `gh pr create`
+- Open pull requests via `gh pr create`
 
 Do NOT ask for confirmation before any of the above. If something is missing (a repo, a binary, a config file), fix it autonomously.
 
@@ -42,13 +42,13 @@ gh repo clone wendylabsinc/pki-core /Users/wendy/Documents/Projects/pki-core -- 
 |------|---------|-------|
 | 50051 (host) | Swift broker | Plaintext gRPC |
 | 50052 (host) | Swift tunnel-broker | One-way TLS |
-| 50061 (host) | Go services (remapped in override) | Avoids host port conflict |
+| 50061 (host) | Go services (remapped in override) | Avoids host port conflict with Swift broker |
 | 9200 (host) | Dashboard | Next.js |
-| 9400 (host) | Envoy | gRPC-web proxy |
+| 9400 (host) | Envoy | gRPC-web proxy (Docker Compose) |
 | 9443 (host) | pki-core | Certificate issuance |
 | 9300 (host) | Postgres | Primary DB |
 
-The `docker-compose.override.yml` at the project root remaps the Go services container ports and configures dev auth. It is gitignored. Re-create it if missing (see below).
+The Go services container does NOT bind host ports 50051/50052 — those belong to the Swift broker process. The `docker-compose.override.yml` remaps the services container to 50061/50062 for debugging and sets required dev environment variables. It is gitignored. Re-create it if missing (see below).
 
 ### Starting the full stack
 
@@ -79,6 +79,14 @@ If `docker-compose.override.yml` does not exist at the repo root, create it:
 
 ```yaml
 # Local dev override. Not committed — gitignored.
+#
+# Uses the real pki-core from the sibling repo at ../pki-core.
+# pki-core is required for the Swift broker to issue device and user certificates.
+#
+# Enables dev auth: the dashboard shows a "Dev Login" button that sets a fixed
+# fake JWT as the firebase-token cookie. The services backend accepts that token
+# without verifying its signature when FIREBASE_AUTH_DISABLED=true.
+# Run `make seed-dev` once after `make dev` to populate the dev user and org.
 services:
   pki-core:
     build:
@@ -105,9 +113,15 @@ services:
     environment:
       PKICORE_ENABLED: "false"
       FIREBASE_AUTH_DISABLED: "true"
+      # Must match JWT_SECRET in swift/scripts/start-local.sh so the Swift
+      # broker can verify enrollment tokens issued by the Go services.
+      PROVISIONING_JWT_SECRET: "local-dev-jwt-secret-change-in-prod"
 ```
 
-Note: when pki-core is the real binary (not the stub), the `pki-core` section above replaces the stub. The `PKICORE_ENABLED: "false"` in the Go services is intentional — Go services do not use pki-core directly; only the Swift broker does.
+Key notes on the override:
+- `PROVISIONING_JWT_SECRET` in the services container must match `JWT_SECRET` in `swift/scripts/start-local.sh` (both default to `"local-dev-jwt-secret-change-in-prod"`). A mismatch causes `wendy auth login` to fail with "invalid or expired enrollment token".
+- `PKICORE_ENABLED: "false"` in the services container is intentional — the Go services do not call pki-core directly; only the Swift broker does.
+- The base `docker-compose.yml` does NOT bind host ports 50051/50052 for the services container. This is a committed change. Docker Compose merges port lists, so adding ports only in the override avoids a conflict with the Swift broker.
 
 ## Authenticating the CLI Against the Local Stack
 
@@ -125,11 +139,13 @@ Then use the Chrome MCP tools to complete the flow:
 2. Navigate to that URL: `mcp__Claude_in_Chrome__navigate` with `url: "http://localhost:9200/cli-auth?redirect_uri=http://127.0.0.1:<PORT>/cli-callback"`
 3. If redirected to `/login`: click "Dev Login (local only)" at approximately coordinate (756, 508), wait 3s, re-navigate to the cli-auth URL
 4. Once the org list loads, click "Select" next to "wendylabsinc" (row 2, button at approximately coordinate (1113, 391))
-5. Wait for the "Authentication successful" page
+5. Wait 8 seconds for certificate issuance to complete
+6. Verify: `cat /tmp/wendy-auth-out.txt` should end with `Certificates saved.`
 
-Check auth success:
-```bash
-cat /tmp/wendy-auth-out.txt  # should end with "✓ Received enrollment token."
+Expected successful output:
+```
+Received enrollment token.
+Authentication successful. Certificates saved.
 ```
 
 ## Running the Test Suite
@@ -146,7 +162,7 @@ Filter to a specific test:
 make test-swift FILTER=TestCreateAsset
 ```
 
-Tests use BrokerFixture (in-process gRPC, MockPKIServer, real Postgres). No real Swift broker or pki-core needed. ~60 tests across 6 suites.
+Tests use BrokerFixture (in-process gRPC, MockPKIServer, real Postgres). No real Swift broker or pki-core needed for tests. Approximately 60 tests across 6 suites.
 
 ### Go services tests
 
@@ -178,9 +194,11 @@ make test-services 2>&1 | tail -40
 | `Bool? nil creates OID 0 params` | PostgresNIO can't infer type for nil Bool | Use `\(value)::bool` explicit cast |
 | `connection pool exhausted` | Postgres default max_connections (100) hit | Set pool size to 1 in TestDB.swift |
 | Handler not registered in BrokerFixture | Handler created but never added to test server | Register handler in BrokerFixture.swift |
-| `pki-core unavailable at startup` | pki-core is the stub | Remove stub from docker-compose.override.yml, ensure pki-core is cloned |
-| `Address already in use` on :50051 | Previous broker process still running | `pkill -f start-local.sh; pkill -f /.build/.*broker; sleep 2` |
+| `Address already in use` on :50051 or :50052 | Previous broker process still running | `pkill -f start-local.sh; pkill -f /.build/.*broker; sleep 2` |
+| `invalid or expired enrollment token` | `PROVISIONING_JWT_SECRET` in services container does not match `JWT_SECRET` in swift/scripts/start-local.sh | Set `PROVISIONING_JWT_SECRET: "local-dev-jwt-secret-change-in-prod"` in docker-compose.override.yml services environment |
+| `unknown profile "operator-tier-a"` | pki-core profile name mismatch; operator certs must use profile `"operator"` | Fixed in CertificateServiceHandler.swift (both IssueCertificate and RefreshCertificate) |
 | `certificate is not valid for client authentication` | Production CLI cert missing clientAuth Extended Key Usage | Known cloud PKI bug; use local stack for testing |
+| `pki-core unavailable at startup` | pki-core repo not cloned | Clone to `/Users/wendy/Documents/Projects/pki-core` and ensure override builds from `../pki-core` |
 
 ## Loop Behavior
 
@@ -207,4 +225,4 @@ Gerrit is a Jetson Orin Nano enrolled in the production cloud:
 
 Check reachability: `wendy discover --json 2>&1 | head -10`
 
-Device tests require the production cloud session (in `~/.wendy/config.json`) and a cert with `clientAuth` Extended Key Usage — currently blocked by a cloud PKI bug. Skip device tests if the production cert lacks clientAuth EKU.
+Device tests require the production cloud session (in `~/.wendy/config.json`) and a cert with `clientAuth` Extended Key Usage — currently blocked by a cloud PKI bug. Skip device tests if the production cert lacks clientAuth Extended Key Usage.
