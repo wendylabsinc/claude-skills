@@ -198,20 +198,6 @@
             ]
         },
         {
-            "name": "wendy-cloud-iterate",
-            "source": "./wendy-cloud-iterate",
-            "description": "Autonomous continuous integration loop for the Wendy Cloud repository: starts the dev stack, runs integration tests, diagnoses failures, and applies fixes",
-            "category": "development",
-            "keywords": [
-                "wendy",
-                "cloud",
-                "swift-broker",
-                "integration-testing",
-                "autonomous",
-                "iterate"
-            ]
-        },
-        {
             "name": "wendy-iterating",
             "source": "./wendy-iterating",
             "description": "General-purpose iterate-fix-and-ship loop: worktree per fix, PR workflow, loop pacing, and auto-terminate at 3 clean scans. Pair with a testing skill (e.g. wendy-cloud-testing) that supplies test commands and failure-mode knowledge.",
