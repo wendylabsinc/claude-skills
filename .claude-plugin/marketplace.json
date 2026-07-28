@@ -224,6 +224,37 @@
                 "integration-tests",
                 "docker"
             ]
+        },
+        {
+            "name": "wendy-gcp-deployment",
+            "source": "./wendy-gcp-deployment",
+            "description": "Wendy's GCP deployment conventions: Pulumi (Go, GCS backend, KMS secrets), PoLP custom IAM roles, OIDC-only CI auth, wendy.sh/wendy.dev DNS rules, cost-efficiency, and dev/prod splits. Intermediate until the v1 consolidated deployment model.",
+            "category": "development",
+            "keywords": [
+                "gcp",
+                "google-cloud",
+                "pulumi",
+                "iam",
+                "least-privilege",
+                "cloud-run",
+                "dns",
+                "workload-identity-federation",
+                "deployment"
+            ]
+        },
+        {
+            "name": "github-actions",
+            "source": "./github-actions",
+            "description": "GitHub Actions hygiene for any workflow: prefer established actions over hand-rolled scripts, verify action versions at authoring time (never from memory), least-privilege permissions, OIDC-only cloud auth.",
+            "category": "development",
+            "keywords": [
+                "github-actions",
+                "ci",
+                "workflow",
+                "oidc",
+                "permissions",
+                "action-versions"
+            ]
         }
     ]
 }
