@@ -6,7 +6,7 @@ Run through this on any interop PR that touches wendy-agent/wendyos, `pki-core`,
 - [ ] **Is backend/provider selection config-driven?** No hard-wired issuer, no environment-sniffing, no "it's probably GCP" default baked into a call site.
 - [ ] **Does anything import or assume GCP metadata, PSC, or Google JWKS outside the managed backend?** If the managed-GCP code path is reachable when the self-hosted backend is selected, that's a bug, not a fallback.
 - [ ] **When the SaaS stack is unreachable, does the device keep operating on held state and alert (degraded mode) — rather than brick?** And, at the same time, does it still refuse to accept unverifiable material for availability's sake? Both halves matter: availability failures must fail safe, never fail open.
-- [ ] **Are trust bundles configurable**, while the pinned platform root is still honored? (The platform Root baked into the OS image is never replaced by a self-hosted trust bundle — it's the anchor the self-hosted chain must still validate up to where applicable.)
+- [ ] **Are trust bundles configurable**, while the pinned platform root is still honored? (Device certificate chains must still validate up to the platform Root baked into the OS image (§5.4) — that anchor is never replaced by a self-hosted trust bundle. The mesh workload-identity trust bundle is a separate, deliberately independent thing: Wendy issues nothing for the mesh in the external-chain backend, and the transport root may be operator-owned (§11.4).)
 - [ ] **Does mTLS work as the fabric transport where GCP-WI-OIDC is unavailable?** (§11.1 — mTLS is the retained self-hosted backend, not a hypothetical.)
 - [ ] **Do docs and config samples cover both profiles** — not just the managed-GCP happy path?
 

@@ -13,7 +13,7 @@ pki-core already has the target shape, and the other two services are adopting i
 
 ## Where cloud and wendy-auth stand
 
-- **wendy-auth** has landed hash-chaining + durable in-order append + per-realm-key-signed checkpoints + `correlation_id` threading (its W5 work) — check current state before assuming it's still behind.
+- **wendy-auth** has built hash-chaining + durable in-order append + per-realm-key-signed checkpoints + `correlation_id` threading (its W5 work, gated on `w3-inter-service-fabric`) but it is **pending review**, not landed — check current state before assuming it's still behind or already merged.
 - **cloud** is still best-effort, mutable rows (`audit_logs`) as of this writing — it has not yet adopted the shape. Verify current state rather than assuming either way; this is exactly the kind of fact that drifts as work lands.
 
 Don't take either status as fixed — confirm against the contract/codebase before stating it in a review.

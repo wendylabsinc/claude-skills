@@ -10,6 +10,6 @@
 
 ## Revocation
 
-Revocation is operator- or tenant-triggered and carried over the SSF signal channel — **fail-safe direction only** (revoke / downgrade / deprovision / session-kill), never a grant. Connected principals see it promptly. Offline devices are bounded by how fast their CRL/OCSP staple refreshes — an accepted, documented residual for disconnected operation, not something further hardenable without connectivity (§5.4).
+Revocation is operator- or tenant-triggered and carried over the SSF signal channel — **fail-safe direction only** (revoke / downgrade / deprovision / session-kill), never a grant (§6). Connected principals see it promptly. Offline devices are bounded by how fast their CRL/OCSP staple refreshes — an accepted, documented residual for disconnected operation, not something further hardenable without connectivity (§5.4).
 
 **Dueling renewals are a theft signal.** A cloned key and the real device fighting over renewals produce detectable serial churn/lockout, which should raise a tenant alert rather than be silently resolved (§5.4).

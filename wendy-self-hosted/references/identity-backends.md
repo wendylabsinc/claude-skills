@@ -20,7 +20,7 @@ Every GCP workload already holds a **Google-signed, zero-secret, platform-attest
 
 ## Backend 2 — pki-core-issued (self-hosted, or a unified SPIFFE domain)
 
-An attestation → cert exchange, one layer down from the device model (D5 pattern): the service generates a key, presents `{attestation + CSR + PoP}`, `pki-core` verifies the attestation, checks an identity allowlist, and mints a short-lived SPIFFE workload cert bound to the key.
+An attestation → cert exchange, the D5 pattern (the operator token + proof-of-possession exchange) one layer down: the service generates a key, presents `{attestation + CSR + PoP}`, `pki-core` verifies the attestation, checks an identity allowlist, and mints a short-lived SPIFFE workload cert bound to the key.
 
 - The **attestor itself is pluggable**: a GCP WI token, a Kubernetes projected ServiceAccount token, a one-time bootstrap token, or an external OIDC IdP. This is what lets a self-hosted cluster bootstrap without a GCP metadata server at all.
 - `pki-core` **self-bootstraps** from its own KMS-held CA key — no cycle.

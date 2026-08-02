@@ -24,7 +24,7 @@ How principals in the Wendy ecosystem get, renew, and lose certificates. **pki-c
 ## Key Rules (non-negotiable)
 
 1. **Client-generated keys only.** Private keys are always generated on the client; pki-core's engine-side `GenerateKeyAndIssueCert` is **prohibited** for principal certs. The sole exception is the **server-keygen-over-USB fallback**, for a device that genuinely cannot generate its own key, with in-memory zeroization after use (§5.2).
-2. **`extractable:false` is the floor.** WebCrypto keys are non-exportable by default; high-assurance operators use a FIDO2/passkey hardware authenticator instead, so signing happens inside the device and malware can only *use* the key while resident, never exfiltrate it (§7).
+2. **`extractable:false` is the floor.** The Wendy frontend holds the signing key as a WebCrypto key with `extractable:false` explicitly set (§4.1/§7) — not a platform default; high-assurance operators use a FIDO2/passkey hardware authenticator instead, so signing happens inside the device and malware can only *use* the key while resident, never exfiltrate it (§7).
 3. **No pure bearer PATs.** Only sender-constrained tokens exist in this system — a copy-pasteable secret is rejected outright, for humans and service accounts alike (D17).
 4. **Request-signing is JWS/COSE with ML-DSA, not RFC 9421.** Proof-of-possession is a signature over a canonical request descriptor, algorithm ML-DSA per RFC 9964 (default leaf **ML-DSA-65**), enveloped as JWS (HTTP/cloud) or COSE_Sign1 (edge/gRPC) — not RFC 9421 HTTP Message Signatures, whose registry has no ML-DSA algorithm (§4.1).
 
