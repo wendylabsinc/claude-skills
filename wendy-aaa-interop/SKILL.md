@@ -49,7 +49,7 @@ Transport (mTLS peer, or GCP-WI-OIDC on the inter-service fabric) names the *ser
 ## Two Credential Shapes
 
 - **Cloud-facing = identity-only.** Carries the SPIFFE identity, no entitlements. Cloud authorizes *live* against its own mutable state — more containable than a baked-in snapshot; embedding entitlements here would only make a stolen key harder to contain.
-- **Device-facing = entitlement-bearing X.509.** The device is an offline enforcement point with no live authz to consult, so entitlements travel with the credential: grammar `entitlement:{category}:{permission}:{effect}`, deny-wins, vocabulary = the wendy-agent gRPC method set ∪ cloud-defined entitlements.
+- **Device-facing, direct field/USB access = entitlement-bearing X.509.** Used only for direct operator→device access with no cloud in the loop; the offline enforcement point has no live authz to consult, so entitlements travel with the credential: grammar `entitlement:{category}:{permission}:{effect}`, deny-wins, vocabulary = the wendy-agent gRPC method set ∪ cloud-defined entitlements. The **cloud-mediated device path** (postbox polling §5.3, image pull §5.7) uses an **identity-only** device cert + operator-signed requests / live checks instead.
 
 (§4.2)
 
