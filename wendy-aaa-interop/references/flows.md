@@ -36,6 +36,7 @@ Deliberately summaries, not mirrors of the contract. Read the Linear contract (s
 
 - Cloud orchestrates end-to-end; no single service can create a tenant unilaterally: cloud creates the org record → pki-core `CreateCustomerCA` mints a tenant UUID + CA hierarchy → wendy-auth provisions the realm bound to that UUID.
 - `pki_tenant_uuid` is set once at provision and is **immutable** — the anchor for cryptographic tenant isolation, resolved by UUID and never by the renameable realm slug (`org_id`).
+- Signup completes with an admin invite email; the admin sets a credential and signs into cloud's global dashboard client.
 
 ## 5.6 Policy ceilings
 
