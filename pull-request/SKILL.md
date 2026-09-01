@@ -1,38 +1,25 @@
 ---
 name: pull-request
-description: "Create and manage pull requests from scope selection through review and merge readiness. Use when asked to create, split, stack, describe, publish, update, monitor, review, ready, or merge a PR; when deciding PR boundaries; or when responding to CI, automated review, security findings, or reviewer feedback. Preserves issue traceability, accurate descriptions, commit history, and author attribution."
+description: "Create and maintain clear, reviewable pull requests. Use when writing or updating a PR description; linking issues or stacked PRs; splitting changes; documenting database, API, SDK, UI, or CLI boundaries; monitoring CI and review feedback; preserving commit history and authorship; or checking PR readiness and merge mechanics."
 ---
 
 # Pull Requests
 
 ## Goal
 
-Produce coherent, reviewable changes with accurate issue relationships, current descriptions, complete feedback handling, and preserved authorship.
+Make every PR easy to understand, review, validate, and merge without losing issue traceability, current evidence, commit history, or contributor attribution.
 
-A pull request is the implementation record. Its linked issue remains the problem record. Its commits remain the historical record of who changed what and why.
+This skill owns PR mechanics. Mode selection, human-agreement stages, implementation authorization, and experiential-development workflow belong to the `agentic-development` skill; see the appendix.
 
-## Authorization and repository conventions
+## Repository conventions and authorization
 
-Read the repository's contributor guidance, PR template, merge policy, and required checks first. Follow a repository-specific convention when it conflicts with this default.
+Read the repository's contributor guidance, PR template, required checks, and merge policy first. A repository-specific convention takes precedence over this default.
 
-Treat branch creation, implementation, pushing, opening a draft, marking ready, merging, and deploying as distinct actions. Do not infer authorization for a later action from authorization for an earlier one. Never merge or deploy unless explicitly authorized.
+Treat pushing, opening a draft, marking ready, merging, and deploying as distinct mutations. Perform only the stages actually authorized. Do not disturb unrelated dirty state or add opportunistic cleanup.
 
-Do not disturb unrelated dirty state or broaden the change with opportunistic cleanup.
+## Issue links and titles
 
-## Development modes
-
-Choose one mode explicitly before publication:
-
-1. **Integrated mode** — the normal default. One PR contains the durable contract and its implementation, and humans review both at the depth warranted by risk.
-2. **Contract-first mode** — normally a two-PR stack and rarely a three-PR stack. An agent first drafts the hard-to-change boundaries and concrete stubs for human iteration. Humans may promote additional structural decisions into the agreed contract. The final child implements everything left and supplies evidence for experiencing it.
-
-Use integrated mode for small changes, tightly coupled discovery, urgent fixes, security- or migration-dominated work, or whenever splitting would make review and delivery harder. Use contract-first mode when durable boundaries can be agreed independently, implementation is substantial but mostly replaceable, multiple consumers depend on the contract, or a preview can let humans validate the resulting experience.
-
-Record the chosen mode in the PR metadata when using contract-first mode. Do not force every change into multiple stages, and do not use a separate structure PR unless human iteration on structure has enough value to justify another gate.
-
-## Issue handoff
-
-When an issue exists, link it at the top of the PR instead of repeating its content:
+When an issue exists, link it at the top instead of repeating its content:
 
 ```markdown
 - **Closes:** [PROJECT-123 Problem title](https://linear.app/example/issue/PROJECT-123/problem-title)
@@ -40,24 +27,42 @@ When an issue exists, link it at the top of the PR instead of repeating its cont
 > **In plain terms:** Describe only what this PR changes for people.
 ```
 
-Choose the relationship that is actually true:
+Choose the relationship that is true:
 
 - **Closes** — this PR fully resolves the issue.
 - **Advances** — this PR delivers only part of the issue.
 - **Related** — the issue provides context without claimed progress.
-- **Issue** — a neutral association when no lifecycle claim is appropriate.
+- **Issue** — a neutral association.
 
-Use one line per issue when several are relevant. Only use automatic closing behavior for full resolution. If no issue exists, omit the link and give enough context in **In plain terms** for the PR to stand alone.
+Use one line per issue. Only use automatic closing behavior for full resolution. If there is no issue, omit the link and give enough context in **In plain terms** for the PR to stand alone.
 
-The PR title describes the behavior delivered and need not copy the issue title. Do not rewrite the issue into a retrospective implementation specification.
+The PR title describes the behavior delivered and need not copy the issue title. The issue remains the problem record; the PR is the implementation record.
 
-For complete description guidance and examples, read [references/descriptions.md](references/descriptions.md).
+## Description mechanics
+
+Use this compact default unless the repository template differs:
+
+```markdown
+- **Closes:** [PROJECT-123 Problem title](https://linear.app/example/issue/PROJECT-123/problem-title)
+
+> **In plain terms:** One short paragraph describing what this PR changes for
+> people without repeating the linked issue.
+
+## Summary
+- Explain the implemented change and material trade-offs succinctly.
+
+## Tests
+- `command that was run`
+- Or: Not run (reason)
+```
+
+Keep the body grounded in the cumulative diff and current validation. Avoid file-by-file narration, private helper names, vague bullets, stale intent, and claims not supported by the branch.
+
+For complete writing guidance, optional sections, and examples, read [references/descriptions.md](references/descriptions.md).
 
 ## Scope and splitting
 
-Prefer one coherent user, product, or operational outcome per PR. A PR should have one primary reason to exist and be understandable without unrelated changes.
-
-Split work when parts have meaningfully different:
+Prefer one coherent user, product, or operational outcome per PR. Split work when parts have meaningfully different:
 
 - outcomes or issue relationships;
 - risk, rollback, deployment, or durable contract boundaries;
@@ -65,111 +70,83 @@ Split work when parts have meaningfully different:
 - release timing;
 - dependencies that can land independently.
 
-Do not split mechanically by file count, language, directory, or implementation layer. Keep supporting refactors with their consumer when they have no independent value. Do not create a foundation PR merely to make the visible feature PR look smaller.
+Do not split mechanically by file count, language, directory, or implementation layer. Keep a supporting refactor with its only consumer. Do not create a foundation PR solely to make the visible feature PR look smaller.
 
-A split PR must still be coherent. State what it delivers, test it at its actual boundary, and use **Advances** until the issue is genuinely complete. Only the PR that completes the remaining issue may use **Closes**.
+Every split PR still needs a coherent purpose, accurate relationship, and validation at its actual boundary. Intermediate PRs use **Advances**; only the PR completing the issue uses **Closes**.
 
 ## Durable boundary changes
 
-Give disproportionate attention to interfaces that users, clients, persisted data, or other repositories will depend on and that are costly to reverse after release. Inspect the diff specifically for:
+Inspect the diff specifically for interfaces that users, clients, persisted data, scripts, or other repositories will depend on and that become costly to reverse:
 
-- **Database schemas:** tables, columns, types, constraints, indexes with semantic impact, persisted meanings, data migrations, compatibility windows, and rollback behavior.
-- **gRPC and protobuf contracts:** services, RPCs, messages, field numbers, field presence, enum values, wire meaning, error behavior, and compatibility or reservation requirements.
-- **REST APIs:** methods, paths, authentication, request and response shapes, status codes, error contracts, pagination, defaults, and version compatibility.
-- **Public SDK APIs:** exported modules, types, functions, signatures, protocol conformances, behavior guarantees, errors, concurrency semantics, platform support, deprecations, and source or binary compatibility.
-- **User interfaces:** changes to the journey people see—available actions, navigation, state, terminology, feedback, accessibility, and screenshots where useful.
+- **Database schemas:** tables, columns, types, constraints, semantically important indexes, persisted meanings, migrations, compatibility windows, and rollback behavior.
+- **gRPC and protobuf:** services, RPCs, messages, field numbers and presence, enum values, wire meaning, errors, and reservation or compatibility requirements.
+- **REST APIs:** methods, paths, authentication, request and response shapes, status and error contracts, pagination, defaults, and versions.
+- **Public SDK APIs:** exported modules, types, functions, signatures, protocols, behavior guarantees, errors, concurrency semantics, platform support, deprecations, and source or binary compatibility.
+- **User interfaces:** the journey people see—actions, navigation, state, terminology, feedback, accessibility, and screenshots where useful.
 - **Command-line interfaces:** commands, flags, arguments, defaults, prompts, output formats, exit codes, configuration, environment variables, and scripting compatibility.
 
-When one of these boundaries changes, add a concise **Boundary changes** section or equivalent repository-template content. Describe only the externally observable contract delta:
+When one changes, add a concise section describing only the observable contract delta:
 
 ```markdown
 ## Boundary changes
 - **REST:** `POST /devices` now returns `409 device_already_exists` for a duplicate identity instead of a generic `400`.
-- **CLI:** `wendy deploy --wait` now exits nonzero when device confirmation times out; scripts that ignored the prior timeout message may need adjustment.
+- **CLI:** `wendy deploy --wait` now exits nonzero when device confirmation times out; scripts that ignored the old timeout message may need adjustment.
 ```
 
-Use before → after wording when it removes ambiguity. State whether the change is additive, compatible, deprecated, or breaking, and mention required migration, rollout ordering, or rollback constraints. If several repositories consume the boundary, identify the affected consumers or linked PRs.
+Use before → after wording when helpful. State whether the change is additive, compatible, deprecated, or breaking, and mention affected consumers and material migration, rollout, or rollback constraints.
 
-Keep this section succinct. Do not list private helpers, handlers, ORM models, view types, internal refactors, or other replaceable implementation mechanics unless they materially alter the contract, compatibility, risk, or review strategy. If no durable boundary changed, do not add an empty section merely to satisfy a template.
+Do not list replaceable helpers, handlers, ORM models, view types, or internal refactors here unless they alter the external contract or risk. Do not add an empty boundary section.
 
-In contract-first mode, these durable boundaries are the agent's minimum initial contract—not a ceiling on human review. During iteration, a human may deliberately promote internal structure such as view/view-model types, modules, ownership, state flow, protocols, concurrency boundaries, or test seams into the agreed contract. Record those under **Agreed structure**, not **Boundary changes**, so externally durable contracts remain distinguishable from human-selected implementation constraints.
+In contract-first work, human-selected internal seams belong under **Agreed structure**, not **Boundary changes**.
 
-## Stacking
+## Stack mechanics
 
-Use a stack only when an unavoidable dependency prevents clean independent PRs. Prefer independent PRs or one reasonably sized PR when either is easier to review and merge.
-
-For a stack:
-
-- keep it shallow and order it from prerequisite to user-facing outcome;
-- give each PR a coherent purpose and its own validation;
-- base each child on its actual parent branch;
-- declare dependencies and successors before **In plain terms**;
-- describe only the current PR's delta, not the cumulative stack;
-- use **Advances** on intermediate PRs and **Closes** only when the issue is fully resolved;
-- update bases, links, and descriptions as parent PRs merge;
-- avoid parallel edits to the same lines that create cascading conflicts.
+Keep stacks shallow. Base each child on its actual parent and declare relationships before **In plain terms**:
 
 ```markdown
 - **Advances:** [PROJECT-123 Problem title](https://linear.app/example/issue/PROJECT-123/problem-title)
 - **Depends on:** [#101 Add the shared transport](https://github.com/example/repository/pull/101)
 - **Followed by:** [#103 Expose the user workflow](https://github.com/example/repository/pull/103)
-
-> **In plain terms:** This PR adds the device-side behavior required by the next PR.
 ```
 
-Do not mark a child ready as though it were independently mergeable when its parent is unresolved. After a parent merges, retarget or rebase only as repository policy requires, without casually rewriting published history.
+For every stack:
 
-### Contract-first stacks
+- describe only the current PR's delta, not the cumulative stack;
+- give each PR its own validation;
+- update bases and links as parents merge;
+- avoid overlapping edits that create cascading conflicts;
+- do not present a child as independently mergeable while its parent is unresolved;
+- merge in dependency order without casually rewriting published history.
 
-The agent begins with the smallest useful human-review surface. Its initial draft covers the durable boundary checklist, user journey, documentation, examples, and only the structure already required by repository conventions or necessary to make the contract concrete.
+Contract-first work uses one of these shapes:
 
-The first PR is normally the human-reviewed contract:
+```text
+Contract → Implementation
+Boundary → Structure → Implementation   # rare
+```
+
+Represent the layers mechanically:
 
 ```markdown
-- **Advances:** [PROJECT-123 Problem title](https://linear.app/example/issue/PROJECT-123/problem-title)
+# Combined contract PR
 - **Mode:** Contract
-- **Followed by:** [#102 Implement the agreed contract](https://github.com/example/repository/pull/102)
+- **Followed by:** [#102 Implement the contract](...)
 
-> **In plain terms:** This proposes the behavior, boundaries, and selected structure for human agreement. It does not implement them yet.
-
-## Boundary changes
-- Hard-to-change external and user-facing contracts.
-
-## Agreed structure
-- Internal structure deliberately included during human iteration, when any.
-```
-
-The contract PR may include public signatures, schema or protocol definitions, user documentation, CLI help, UI flows or prototypes, examples, fixtures, contract tests, and the minimum stubs needed to compile. A human may add or reshape structural details during iteration—for example views and view models, module seams, protocols, state ownership, data flow, concurrency isolation, or test seams. Once explicitly agreed, those choices are part of the contract even if they are not public APIs.
-
-Keep stubs inert, unreachable, or feature-gated; they must not falsely expose unfinished behavior. Make the PR safe to land independently or keep it draft and coordinate its merge with the implementation. Do not merge a broken build, failing placeholder tests, or a production-visible nonfunctional contract. Record explicit agreement; lack of comments is not approval.
-
-Use a three-level stack only when structural exploration is substantial enough to deserve its own review surface:
-
-1. **Boundary PR** — agent-drafted hard-to-change external contracts and user journey, then human agreement.
-2. **Structure PR** — human-guided internal shape such as modules, types, view/view-model responsibilities, ownership, protocols, and test seams.
-3. **Implementation PR** — remaining behavior behind the agreed boundary and structure.
-
-```markdown
-- **Advances:** [PROJECT-123 Problem title](https://linear.app/example/issue/PROJECT-123/problem-title)
+# Optional structure PR
 - **Mode:** Structure
-- **Depends on:** [#101 Agree the durable boundaries](https://github.com/example/repository/pull/101)
-- **Followed by:** [#103 Implement the agreed structure](https://github.com/example/repository/pull/103)
+- **Depends on:** [#101 Agree the boundaries](...)
+- **Followed by:** [#103 Implement the agreed structure](...)
 
-> **In plain terms:** This proposes the internal shape humans want to maintain. It does not fill in the implementation yet.
+# Implementation PR
+- **Mode:** Implementation
+- **Depends on:** [#102 Agree the structure](...)
+- **Implements:** [#101 Agree the boundaries](...)
+- **Implements:** [#102 Agree the structure](...)
 ```
 
-Do not create a structure PR just to distribute line count or predesign every helper. Include only structure a human asks to explore, structure that crosses important ownership or concurrency seams, or structure that would be disruptive to change after implementation spreads through the codebase.
-
-The final child is the evidence-led implementation:
+The contract or boundary PR records **Boundary changes**. Selected internal seams use **Agreed structure** in the combined contract or optional structure PR. The implementation PR links rather than repeats them and includes:
 
 ```markdown
-- **Closes:** [PROJECT-123 Problem title](https://linear.app/example/issue/PROJECT-123/problem-title)
-- **Mode:** Implementation
-- **Implements:** [#101 Agree the durable boundaries](https://github.com/example/repository/pull/101)
-- **Implements:** [#102 Agree the maintainable structure](https://github.com/example/repository/pull/102)
-
-> **In plain terms:** This fills in the agreed behavior and structure and provides a way to experience it.
-
 ## Try it
 - Preview, experimental build, artifact, or reproducible local journey.
 
@@ -178,94 +155,72 @@ The final child is the evidence-led implementation:
 - **Structure:** None.
 ```
 
-Base every child on its actual parent. Do not repeat the boundary or structure contract in child descriptions; describe only that PR's delta, evidence, material trade-offs, and experience path. Automated agents and CI should inspect implementation mechanics deeply even when human review is focused on contract conformance and live behavior.
-
-Implementation must not silently change any agreed layer. If it reveals a boundary or structure flaw, update the owning parent PR, explain the drift, and obtain renewed agreement before treating descendants as ready. “Opaque” or “compiled” implementation is a review emphasis—not an exemption from security, correctness, or human inspection.
-
-Merge boundary, optional structure, and implementation PRs in order while preserving every stage's commit history. Ensure each parent is safe during any interval between merges, commonly through inert stubs or feature gating. If the platform cannot provide a live preview, supply the best honest substitute—such as a local command, artifact, screenshots, or recording—and state the limitation.
+Omit inapplicable structure lines in a two-level stack. When drift exists, link the owning parent update and renewed agreement. The `agentic-development` skill defines when these layers are appropriate and how agreement works.
 
 ## Commits, history, and authorship
 
-Preserve the original commit history and author metadata whenever practical:
+Preserve original history and author metadata whenever practical:
 
 - do not recreate another person's changes under the agent's identity;
-- do not squash, collapse, reorder, or rewrite published commits merely for cosmetic history;
-- avoid force-pushing published branches unless the repository workflow requires it and the affected collaborators agree;
-- keep new commits attributable to the person or agent that made them;
+- do not squash, collapse, reorder, or rewrite published commits for cosmetic history;
+- avoid force-pushing published branches unless repository workflow requires it and affected collaborators agree;
+- keep new commits attributable to their actual author;
 - retain valid co-author trailers and sign-offs;
-- prefer follow-up commits during review over rewriting commits other people may already be reviewing.
+- prefer follow-up review commits over rewriting commits others may already be reviewing.
 
-Prefer a merge commit when merging is authorized because it preserves the branch's commits, ordering, and authors. Do not squash-merge by default, especially when multiple authors contributed. Use squash or rebase merge only when explicitly requested or required by repository policy; make the loss or rewrite of commit history clear and preserve all required attribution.
+When merging is authorized, prefer a merge commit because it preserves commits, ordering, and authors. Do not squash-merge by default, especially with multiple authors. Use squash or rebase merge only when explicitly requested or required by repository policy; preserve required attribution and make the history loss or rewrite clear.
 
-## Opening and maintaining the PR
+## Keep the PR current after every push
 
-Open a draft at the first coherent publication boundary when authorized. A draft may be incomplete, but its scope, relationship links, current behavior, and validation must be honest.
-
-Derive the title and body from the actual diff and tests, not from an intended plan. After every push:
+After every push:
 
 1. Re-read the cumulative diff against the current base.
-2. Update the title if the delivered scope changed.
+2. Update the title if delivered scope changed.
 3. Update issue, dependency, and successor links.
-4. Update **In plain terms**, summary, durable boundary changes, trade-offs, tests, rollout notes, and follow-ups.
+4. Update **In plain terms**, summary, boundary changes, agreed structure, trade-offs, tests, rollout, **Try it**, drift, and follow-ups as applicable.
 5. Remove claims invalidated by new commits.
 
-Never let the PR description describe work that is no longer in the branch or omit material behavior added later.
+Never let the description claim work absent from the branch or omit material behavior added later.
 
-## CI and feedback loop
+## CI and feedback
 
-After every push, watch CI and automated review until the relevant checks reach a terminal state. Do not report success merely because workflows started. Inspect failures, cancellations, skipped required checks, and stale checks rather than looking only at the aggregate badge.
+After every push, watch relevant CI and automated review to terminal states. Inspect failures, cancellations, skipped required checks, stale checks, and all feedback channels:
 
-Review all feedback channels:
-
-- human reviews and inline threads;
-- issue comments on the PR;
-- test, lint, documentation, contract-generation, migration, and compatibility checks;
+- human reviews, inline threads, and PR comments;
+- tests, lint, documentation, contract generation, migrations, and compatibility;
 - security, dependency, static-analysis, and AI review findings.
 
-Address every finding within the authorized scope:
+Address every finding within authorized scope:
 
-- fix valid findings and add or update focused tests where appropriate;
-- reply with the relevant commit or evidence when a concern is addressed;
-- if a finding is incorrect or inapplicable, resolve or silence it through the tool's narrow, documented suppression mechanism and record the rationale;
-- never ignore feedback, hide an unresolved result, broadly disable a check, lower a security baseline, or mark a false positive without evidence merely to make CI green;
-- ask for direction when feedback conflicts with product intent, repository policy, or authorized scope.
+- fix valid findings and add focused tests where appropriate;
+- reply with the relevant commit or evidence;
+- narrowly resolve or suppress incorrect findings through the tool's documented mechanism and record the rationale;
+- never ignore feedback, hide unresolved results, broadly disable a check, or lower a security baseline merely to turn CI green;
+- ask for direction when feedback conflicts with product intent, repository policy, or scope.
 
-Treat credible security, privacy, credential, data-loss, and supply-chain findings as blocking. Do not paste secrets or sensitive scanner output into public comments.
+Treat credible security, privacy, credential, data-loss, and supply-chain findings as blocking. Do not expose sensitive scanner output publicly. Avoid wasteful reruns when no relevant input changed.
 
-Push coherent fixes rather than one commit per bot message, then repeat the description, CI, and feedback review. Avoid wasteful reruns when no relevant input changed. If a failure is external or infrastructural, document the evidence and keep the PR honestly blocked or draft until policy permits otherwise.
+## Ready and merge mechanics
 
-## Ready and merge gates
+Present a PR as ready only when its description matches the diff, required checks are green, actionable feedback is addressed, invalid findings have evidence-backed resolution, dependencies and material rollout concerns are explicit, and the branch is conflict-free.
 
-Mark a PR ready only when:
-
-- its scope and issue relationships are accurate;
-- its description matches the current diff;
-- required tests and checks are green;
-- all actionable human and automated feedback is addressed;
-- invalid findings are narrowly resolved or suppressed with rationale;
-- durable schema, API, SDK, UI, and CLI boundary changes are concise, explicit, and compatibility-reviewed where applicable;
-- dependencies, migrations, rollout, and follow-ups are explicit where material;
-- the branch is mergeable and has no unresolved conflicts;
-- the PR is not knowingly incomplete or blocked.
-
-Do not approve or present a red, dirty, conflicting, stale, or misleading PR as ready. Do not merge merely because GitHub enables the button. When merging is authorized, recheck status, reviews, base branch, and merge strategy immediately beforehand.
+Do not approve or present a red, dirty, conflicting, stale, blocked, or misleading PR as ready. Before an authorized merge, recheck status, reviews, base branch, dependency order, and merge strategy.
 
 ## Useful GitHub commands
 
 ```bash
-# Inspect the PR and its current claims
 gh pr view <number> --json number,title,body,headRefName,baseRefName,isDraft,mergeable,reviewDecision,statusCheckRollup,closingIssuesReferences
-
-# Inspect the actual change
 git diff --stat <base>...HEAD
 git diff <base>...HEAD
-
-# Watch checks after a push
 gh pr checks <number> --watch
-
-# Open or update through a body file
 gh pr create --draft --title "..." --body-file <file>
 gh pr edit <number> --body-file <file>
 ```
 
-GitHub's summary does not always expose every inline thread or third-party finding. Use the provider UI or API when necessary, and do not claim all feedback is addressed until those channels have been checked.
+GitHub's summary may omit inline threads or third-party findings. Use the provider UI or API as needed before claiming all feedback is addressed.
+
+## Appendix: agentic development lifecycle
+
+Load the `agentic-development` skill when deciding between integrated and contract-first work or handling boundary drafts, human-promoted structure, agreement commits, implementation authorization, previews, live experience, or contract drift.
+
+That skill owns the lifecycle and human/agent collaboration model. This skill only defines how the resulting PRs are represented, maintained, validated, and merged.
