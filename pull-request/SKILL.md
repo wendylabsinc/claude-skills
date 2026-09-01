@@ -19,6 +19,17 @@ Treat branch creation, implementation, pushing, opening a draft, marking ready, 
 
 Do not disturb unrelated dirty state or broaden the change with opportunistic cleanup.
 
+## Development modes
+
+Choose one mode explicitly before publication:
+
+1. **Integrated mode** — the normal default. One PR contains the durable contract and its implementation, and humans review both at the depth warranted by risk.
+2. **Contract-first mode** — a two-PR stack. A draft contract PR contains the stubs, documentation, examples, and user-facing boundaries for human iteration; a child implementation PR makes that agreed contract operational and supplies evidence for experiencing it.
+
+Use integrated mode for small changes, tightly coupled discovery, urgent fixes, security- or migration-dominated work, or whenever splitting would make review and delivery harder. Use contract-first mode when durable boundaries can be agreed independently, implementation is substantial but mostly replaceable, multiple consumers depend on the contract, or a preview can let humans validate the resulting experience.
+
+Record the chosen mode in the PR metadata when using contract-first mode. Do not force every change into two stages.
+
 ## Issue handoff
 
 When an issue exists, link it at the top of the PR instead of repeating its content:
@@ -105,6 +116,44 @@ For a stack:
 ```
 
 Do not mark a child ready as though it were independently mergeable when its parent is unresolved. After a parent merges, retarget or rebase only as repository policy requires, without casually rewriting published history.
+
+### Contract-first stacks
+
+The first PR is the human-reviewed contract:
+
+```markdown
+- **Advances:** [PROJECT-123 Problem title](https://linear.app/example/issue/PROJECT-123/problem-title)
+- **Mode:** Contract
+- **Followed by:** [#102 Implement the agreed contract](https://github.com/example/repository/pull/102)
+
+> **In plain terms:** This defines the behavior and interfaces for human agreement. It does not implement them yet.
+```
+
+The contract PR may include public signatures, schema or protocol definitions, user documentation, CLI help, UI flows or prototypes, examples, fixtures, contract tests, and the minimum stubs needed to compile. Keep stubs inert, unreachable, or feature-gated; they must not falsely expose unfinished behavior. Make the PR safe to land independently or keep it draft and coordinate its merge with the implementation. Do not merge a broken build, failing placeholder tests, or a production-visible nonfunctional contract.
+
+Humans iterate deeply on this PR's durable boundaries and user journey. Keep replaceable internal design out unless it constrains the contract. Record explicit agreement; lack of comments is not approval.
+
+The child PR is the evidence-led implementation:
+
+```markdown
+- **Closes:** [PROJECT-123 Problem title](https://linear.app/example/issue/PROJECT-123/problem-title)
+- **Mode:** Implementation
+- **Implements:** [#101 Define the agreed contract](https://github.com/example/repository/pull/101)
+
+> **In plain terms:** This makes the agreed behavior available to use and provides a way to experience it.
+
+## Try it
+- Preview, experimental build, artifact, or reproducible local journey.
+
+## Boundary drift
+- None.
+```
+
+Base the implementation branch on the contract branch. Do not repeat the contract in the child description; describe implementation evidence, material trade-offs, and how to experience the result. Automated agents and CI should inspect implementation mechanics deeply even when human review is focused on contract conformance and live behavior.
+
+Implementation must not silently change the agreed boundary. If implementation reveals a contract flaw, update the contract PR, explain the drift, and obtain renewed agreement before treating the child as ready. “Opaque” or “compiled” implementation is a review emphasis—not an exemption from security, correctness, or human inspection.
+
+Merge the contract before its child and preserve both commit histories. Ensure the contract is safe during any interval between merges, commonly through inert stubs or feature gating. If the platform cannot provide a live preview, supply the best honest substitute—such as a local command, artifact, screenshots, or recording—and state the limitation.
 
 ## Commits, history, and authorship
 

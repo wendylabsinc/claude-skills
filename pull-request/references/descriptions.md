@@ -31,8 +31,10 @@ Put issue and stack relationships before **In plain terms**, one per line:
 - **Issue** — neutral association.
 - **Depends on** — a parent PR that must land first.
 - **Followed by** — a known child PR.
+- **Mode** — **Contract** or **Implementation** in a contract-first stack.
+- **Implements** — the agreed contract PR implemented by this child.
 
-Do not summarize the linked issue. Only use closing automation when the PR genuinely resolves the whole issue.
+Do not summarize the linked issue or contract. Only use closing automation when the PR genuinely resolves the whole issue.
 
 ## In plain terms
 
@@ -98,7 +100,15 @@ Add only when useful:
 
 ## Follow-ups
 - Known work intentionally outside this PR.
+
+## Try it
+- Preview, experimental build, artifact, or reproducible local journey.
+
+## Boundary drift
+- `None`, or a link to the contract update and renewed agreement.
 ```
+
+Use **Try it** and **Boundary drift** for contract-first implementation PRs. Omit them from ordinary PRs when they add no value.
 
 ## Examples
 
