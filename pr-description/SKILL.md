@@ -1,6 +1,6 @@
 ---
 name: pr-description
-description: "Craft or update pull request descriptions. Use when asked to write, improve, summarize, or update a PR body, especially for GitHub PRs. Produces humane, succinct descriptions that explain what is changing, why it matters, and how it was tested — opening with a plain-terms paragraph for product managers."
+description: "Craft or update pull request descriptions. Use when asked to write, improve, summarize, or update a PR body, especially for GitHub PRs. Produces humane, succinct descriptions that link the owning issue, explain what the PR changes, and record how it was tested."
 ---
 
 # PR Description
@@ -10,51 +10,72 @@ description: "Craft or update pull request descriptions. Use when asked to write
 Write PR descriptions that help reviewers quickly understand the change.
 
 Prefer plain language over implementation narration. Be specific, but concise.
-Explain the behavior or user-visible effect first; mention implementation details
-only when they help review the PR.
+Link to the issue for problem context instead of repeating it. Explain the behavior
+or user-visible effect of this PR first; mention implementation details only when
+they help review the change.
 
 ## Default format
 
 Use this structure unless the repository has a different existing convention:
 
 ```markdown
+- **Closes:** [PROJECT-123 Problem title](https://linear.app/example/issue/PROJECT-123/problem-title)
+
 > **In plain terms:** One short paragraph a non-engineer can read.
-> Lead with the problem as a user experienced it, then what changes for them.
+> Describe what this PR changes for people without repeating the linked issue.
 
 ## Summary
-- Explain the main change in human terms.
-- Include why it matters or what problem it solves.
-- Mention notable scope, behavior, or rollout details if useful.
+- Explain the implemented change in human terms.
+- Mention notable scope, behavior, or trade-offs if useful.
 
 ## Tests
 - `command that was run`
 - Or: Not run (reason)
 ```
 
+## Issue relationship
+
+When a PR has an owning or related issue, link it before the plain-terms block. Do
+not summarize or repeat the issue; the link supplies the problem context.
+
+Choose the relationship that is actually true:
+
+- **Closes** — the PR fully resolves the issue.
+- **Advances** — the PR delivers only part of the issue.
+- **Related** — the issue provides context but this PR does not claim progress on it.
+- **Issue** — a neutral link when no lifecycle claim is appropriate.
+
+Use one line per issue when several are relevant. Only use closing automation when
+the PR genuinely resolves the whole issue. If there is no issue, omit the link and
+include enough problem context in the plain-terms paragraph for it to stand alone.
+The PR title should describe the behavior delivered and need not copy the issue
+title.
+
 ## The "In plain terms" blockquote
 
-Every PR body opens with this blockquote, written for non-engineers (product
-managers, support, leadership). It is the one part of the description they
-will actually read, so it must stand alone.
+After any issue links, every PR body opens its explanation with this blockquote,
+written for non-engineers (product managers, support, leadership). It is the one
+part of the description they will actually read, so it must stand alone as a
+summary of the PR—not of the issue.
 
-- **Problem first, fix second.** Start with what a user saw or suffered, in
-  concrete terms ("the org selection screen offers no way to actually pick an
-  org and continue"). Then the outcome ("This fixes the picker so selecting
-  works"). Never open with "This PR adds…".
+- **Change first.** State what this PR now makes possible, fixes, or changes for
+  people. The linked issue already explains the original problem. When no issue is
+  linked, briefly include the problem before the outcome. Never open with file or
+  function names.
 - **One paragraph, 2–4 sentences.** If it needs more, the PR probably needs a
   narrower scope, not a longer blockquote.
 - **No jargon, no file or function names.** Product and household names are
   fine (Wendy, Docker, CUDA, Ctrl-C); identifiers like `classifyFlashError`
   are not.
-- **Name the stakes when they're real.** "a fix looks shipped but isn't",
-  "hogging the camera so nothing else could use it" — the cost of the bug is
-  what makes a PM care.
+- **Name the stakes when they clarify the change.** Do not restate the issue's
+  background, but explain a material consequence or trade-off of this PR when a
+  reviewer needs it.
 - **State trade-offs honestly.** If the safe fix is slower or disables an
   optimization, say so and point at the follow-up.
 - **Chores and display-only changes say so explicitly:** "No behavior change —
   this refreshes auto-generated code…", "Display-only — no behavior change."
-- **Follow-ups anchor to their parent:** "Two small polish fixes on the
-  flash-error reporting that just shipped in #1367: …"
+- **Follow-ups link to their parent.** Use **Related** for the parent and describe
+  only the additional behavior delivered here.
 - Italics are welcome for the one surprising word: "kept running the *old*
   version", "the error shown could be about the *retry*".
 
@@ -73,20 +94,23 @@ will actually read, so it must stand alone.
 
 ## Workflow
 
-1. Inspect the current PR and branch:
-   - `gh pr view --json number,title,body,headRefName,baseRefName`
+1. Inspect the current PR, branch, and linked issue when one exists:
+   - `gh pr view --json number,title,body,headRefName,baseRefName,closingIssuesReferences`
    - `git diff --stat <base>...HEAD`
    - `git diff <base>...HEAD` when needed
-2. Identify:
-   - What changed
-   - Why it changed
+2. Classify each issue link as **Closes**, **Advances**, **Related**, or **Issue**.
+3. Identify from the actual diff and validation:
+   - What this PR changes
    - User-visible behavior
-   - Important constraints or edge cases
+   - Important constraints, trade-offs, or edge cases
    - Tests run
-3. Draft the PR body, starting with the "In plain terms" blockquote.
-4. If updating an existing PR, preserve useful existing sections and remove stale
-   or overly mechanical wording. Add the blockquote if it is missing.
-5. Apply with:
+4. Draft the PR body with issue links first, followed by the "In plain terms"
+   blockquote. Do not copy the issue description into either the blockquote or
+   summary.
+5. If updating an existing PR, preserve useful existing sections and remove stale
+   or overly mechanical wording. Add the relationship link and blockquote if they
+   are missing.
+6. Apply with:
    - `gh pr edit <number> --body-file <file>`
 
 ## Optional sections
@@ -112,11 +136,10 @@ Add only when useful:
 ### Bug fix with real stakes
 
 ```markdown
-> **In plain terms:** When you replaced or redeployed an app, the
-> old copy could keep running invisibly for hours — in one case hogging the
-> camera so nothing else could use it. Now replacing an app reliably shuts
-> down everything the old version started, and a failed shutdown is reported
-> instead of hidden.
+- **Closes:** [PROJECT-123 Replaced apps can leave processes running](https://linear.app/example/issue/PROJECT-123/replaced-apps-can-leave-processes-running)
+
+> **In plain terms:** Replacing an app now reliably shuts down everything the
+> old version started, and reports a failed shutdown instead of hiding it.
 
 ## Summary
 - Kill every process the old container's task spawned before starting the
@@ -130,12 +153,12 @@ Add only when useful:
 ### Fix with an honest trade-off
 
 ```markdown
-> **In plain terms:** When you redeploy an app, Wendy could report
-> success while the device quietly kept running the *old* version — so a fix
-> looks shipped but isn't. This makes Wendy confirm the device actually holds
-> the new image before claiming success; if it can't confirm, it re-uploads
-> instead. Trade-off: multi-service apps now always re-upload (safe but
-> slower) until a follow-up optimization lands.
+- **Closes:** [PROJECT-124 Redeployments can keep using an old image](https://linear.app/example/issue/PROJECT-124/redeployments-can-keep-using-an-old-image)
+
+> **In plain terms:** Redeploying now confirms the device actually holds the new
+> image before claiming success, and re-uploads when it cannot confirm. Trade-off:
+> multi-service apps now always re-upload—safe but slower—until a follow-up
+> optimization lands.
 
 ## Summary
 - Verify the device-side image digest before honoring the push-skip
@@ -149,9 +172,10 @@ Add only when useful:
 ### Chore / no behavior change
 
 ```markdown
-> **In plain terms:** No behavior change — this refreshes
-> auto-generated code that had fallen out of date, so upcoming feature PRs
-> show only their real changes.
+- **Related:** [PROJECT-125 Prepare generated bindings for upcoming work](https://linear.app/example/issue/PROJECT-125/prepare-generated-bindings-for-upcoming-work)
+
+> **In plain terms:** No behavior change—this refreshes auto-generated code so
+> upcoming feature PRs show only their real changes.
 
 ## Summary
 - Regenerate the Swift proto bindings against the pinned generator toolchain.
@@ -163,10 +187,11 @@ Add only when useful:
 ### Follow-up to a merged PR
 
 ```markdown
-> **In plain terms:** Two small polish fixes on the flash-error
-> reporting that just shipped in #1367: cancelling a flash with Ctrl-C now
-> aborts cleanly instead of kicking off a fresh multi-gigabyte retry, and
-> cancellations are counted correctly in our error analytics.
+- **Related:** [#1367 Report actionable flash failures](https://github.com/example/repository/pull/1367)
+
+> **In plain terms:** This follow-up makes Ctrl-C abort flashing cleanly without
+> starting another multi-gigabyte retry, and records cancellations correctly in
+> error analytics.
 
 ## Summary
 - Abort on context cancellation before entering the fallback write path.
