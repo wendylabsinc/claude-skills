@@ -4,6 +4,16 @@ Use these as concise starting points, not mandatory boilerplate. Remove sections
 
 The contract is the code diff at an exact commit. PR prose only indexes and explains declarations, stubs, mocks, fixtures, previews, and tests that reviewers can inspect. A document or description without concrete contract code is not a contract-first PR.
 
+## Local iteration before publication
+
+Stages 1–2 are a rapid local loop by default:
+
+```text
+edit contract code → focused local validation → refresh the experience → human feedback → repeat
+```
+
+Do not commit, push, create or edit the PR, start remote CI, or wait for checks between tweaks. Feedback on the local experience is not publication authorization. When the human explicitly asks to checkpoint or publish, create one coherent commit, push it, update the draft PR, and reconcile CI before requesting agreement on that exact commit. If iteration resumes, return to the local loop until the next explicit publication request.
+
 ## Orientation decision
 
 ```markdown
@@ -20,10 +30,12 @@ The contract is the code diff at an exact commit. PR prose only indexes and expl
 
 **Experience path:** Per-PR experimental build on a test device.
 
-**Next gate:** Authorize the agent-drafted boundary PR. Implementation waits for agreement on every applicable contract layer and implementation authorization.
+**Next gate:** Authorize local boundary exploration. Publishing the draft contract checkpoint, agreeing its exact commit, and implementation remain separate gates.
 ```
 
 ## Contract PR
+
+Use this only after the human authorizes publishing a checkpoint.
 
 ```markdown
 - **Advances:** [PROJECT-123 Problem title](https://linear.app/example/issue/PROJECT-123/problem-title)
