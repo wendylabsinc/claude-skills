@@ -1,13 +1,48 @@
 ---
 name: linear
-description: 'Linear CLI for issue tracking and project management. Use when developers mention: (1) Linear issues or tickets, (2) issue tracking or task management, (3) WDY team issues, (4) closing, updating, or triaging tickets, (5) linking PRs to issues, (6) issue states (triage, backlog, started, completed).'
+description: 'Linear issue tracking and project management through the CLI or GraphQL API. Use when developers mention: (1) Linear issues or tickets, (2) issue tracking or task management, (3) WDY team issues, (4) closing, updating, or triaging tickets, (5) linking PRs to issues, (6) issue states (triage, backlog, started, completed).'
 ---
 
-# Linear CLI
+# Linear
 
 ## Overview
 
-The Linear CLI (`linear`) provides command-line access to Linear issue tracking. Installed via Homebrew at `/opt/homebrew/bin/linear`.
+Use the Linear CLI (`linear`) when it is available. Do not assume it is installed. When the CLI is unavailable or does not support the required operation, use Linear's GraphQL API with the API key already supplied by the environment.
+
+## Access selection
+
+1. Check for the CLI without failing:
+
+   ```bash
+   command -v linear
+   ```
+
+2. If it exists, use the CLI guidance below.
+3. Otherwise verify that the GraphQL credential is available without printing it:
+
+   ```bash
+   test -n "${LINEAR_API_KEY:-}"
+   ```
+
+   Projects using direnv commonly declare `LINEAR_API_KEY` in an ignored environment file and load it from `.envrc`. If it is missing, let direnv load the project environment (for example, by entering/allowing the project or using `direnv exec`) rather than reading, logging, or copying the secret.
+
+4. Send GraphQL operations to `https://api.linear.app/graphql` with `Authorization: $LINEAR_API_KEY` and JSON content type. Use GraphQL variables rather than interpolating issue text into the query:
+
+   ```bash
+   query='query Viewer { viewer { id name email } }'
+   payload=$(jq -cn --arg query "$query" '{query: $query, variables: {}}')
+   response=$(curl -sS https://api.linear.app/graphql \
+     -H "Authorization: $LINEAR_API_KEY" \
+     -H 'Content-Type: application/json' \
+     --data "$payload")
+   jq -e '.errors == null' <<<"$response" >/dev/null || {
+     jq '.errors' <<<"$response" >&2
+     exit 1
+   }
+   jq '.data' <<<"$response"
+   ```
+
+For mutations, query IDs and current state first rather than guessing or relying on stale hardcoded IDs. Treat a GraphQL HTTP 200 response containing an `errors` array as a failure. Never print the API key, include it in command output, commit it, or place it directly in a query or variables object.
 
 ## Issue authoring
 
@@ -40,9 +75,9 @@ Expected behavior stated in a bug report belongs in the problem description; do 
 
 Before creating or updating an issue, remove every sentence that cannot be traced to the request, cited evidence, direct observation, or an explicit human decision.
 
-## Required Configuration
+## CLI configuration
 
-Commands require `LINEAR_ISSUE_SORT` to be set:
+CLI commands require `LINEAR_ISSUE_SORT` to be set:
 
 ```bash
 export LINEAR_ISSUE_SORT=priority
