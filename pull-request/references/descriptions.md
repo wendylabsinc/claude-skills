@@ -21,6 +21,25 @@ Use this guidance when drafting or updating a PR body. The repository's own PR t
 
 When there is no issue, omit the relationship line and include enough problem context in **In plain terms** for the PR to stand alone.
 
+## Length and tone
+
+A reviewer should be able to read the whole body in under a minute. The default format above is the target size, not a floor to build on.
+
+- **Say it once.** The issue holds the problem, the diff holds the code, CI holds the evidence. The body connects them.
+- **Add a section only when it carries information the reader cannot get elsewhere.** An empty section, an `N/A`, or an unused checklist is noise.
+- **State facts.** No hedging, no salesmanship, no praise for the change.
+- **Write for a human and an agent arriving cold.** Enough context to know what changed and why, in plain language.
+- **Keep AI attribution out.** Generated-with footers, tool badges, and agent signatures belong in commit trailers if a repository wants them at all.
+
+Do not write:
+
+- **Problem / Cause / Solution essays.** They restate the linked issue or the design document.
+- **Pasted command output or narrated verification runs.** Name the command under **Tests**; the run itself lives in CI.
+- **"What I checked" tours.** Reviewers assume the work was checked; findings matter, process does not.
+- **Revision history.** Never append "this PR has been extended" or corrections to earlier paragraphs. Rewrite the body to describe the current branch; the commits and comments already hold the history.
+
+If the body cannot be trimmed to this size without losing something material, the PR is probably too large—see the splitting guidance in the skill.
+
 ## Relationship links
 
 Put issue and stack relationships before **In plain terms**, one per line:
@@ -159,6 +178,55 @@ Use **Try it** and **Contract drift** for contract-first implementation PRs. Omi
 
 ## Tests
 - `go test ./internal/cli/... ./internal/agent/...`
+```
+
+### Trimming a bloated body
+
+Before—an essay that restates the spec, proves its own work, and logs its own revisions:
+
+```markdown
+> **This pull request has been extended.** The first round built the program and
+> proved adoption with an empty preview. A second round has since moved the
+> service into the program. See the update at the bottom, which also corrects
+> three statements below.
+
+## Problem
+The design spec calls for infrastructure as code, matching the earlier
+precedent. The proof of concept deliberately shipped a shell script instead,
+logged as chosen debt in the decision log...
+
+## Cause
+Speed, chosen knowingly. Decision log entry 3 records...
+
+## Solution
+### Verification: the preview is empty
+    $ pulumi preview
+    Resources: 10 unchanged
+
+Read these two lines precisely, because they are the only two things in the run
+that are not "unchanged"...
+```
+
+After—the same PR, current state only:
+
+```markdown
+- **Closes:** [PROJECT-201 Replace the bootstrap script with infrastructure as code](https://linear.app/example/issue/PROJECT-201/replace-the-bootstrap-script-with-infrastructure-as-code)
+
+> **In plain terms:** The dev data stack is now described in code instead of a
+> shell script, so changes to it are reviewable and repeatable. Nothing about
+> the running stack changes.
+
+## Summary
+- Adopt the nine live dev resources by import rather than recreating them; a clean preview reports no changes.
+- Mark the bucket, disk, and instance as protected so a future change cannot replace the stored data.
+- Move the service and its least-privilege roles into the program.
+
+## Tests
+- `pulumi preview --refresh` (no creates, replaces, or deletes)
+- `go build ./...`
+
+## Follow-ups
+- The live VM does not run the startup script the old bootstrap generated; reconciling that is separate work.
 ```
 
 ### No behavior change

@@ -58,6 +58,18 @@ Use this compact default unless the repository template differs:
 
 Keep the body grounded in the cumulative diff and current validation. Avoid file-by-file narration, private helper names, vague bullets, stale intent, and claims not supported by the branch.
 
+Keep it short enough to read in under a minute: relationship links, **In plain terms**, a few summary bullets, and **Tests**. Add another section only when it carries something the reviewer cannot get from the diff, the checks, or the linked issue. A body that needs scrolling usually means the PR is too large or the description is padded.
+
+Write plainly and factually, with enough context that a human or an agent arriving cold understands what changed and why. Leave out:
+
+- problem, cause, or solution essays that restate the linked issue or design document;
+- pasted command output, transcribed verification runs, and "what I checked" tours—evidence belongs in CI, commits, and review replies;
+- revision history such as "this PR has been extended" or corrections to earlier paragraphs; rewrite the body to describe the current branch instead;
+- empty sections, `N/A` placeholders, unused checklists, and other template scaffolding;
+- hedging, salesmanship, and praise for the change.
+
+Keep AI attribution out of the PR body. Generated-with footers, tool badges, and agent signatures belong in commit trailers if a repository wants them at all; in a description they only add noise.
+
 For complete writing guidance, optional sections, and examples, read [references/descriptions.md](references/descriptions.md).
 
 ## Scope and splitting
