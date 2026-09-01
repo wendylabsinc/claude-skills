@@ -15,7 +15,9 @@ This skill owns PR mechanics. Mode selection, human-agreement stages, implementa
 
 Read the repository's contributor guidance, PR template, required checks, and merge policy first. A repository-specific convention takes precedence over this default.
 
-Treat pushing, opening a draft, marking ready, merging, and deploying as distinct mutations. Perform only the stages actually authorized. Do not disturb unrelated dirty state or add opportunistic cleanup.
+Treat committing, pushing, opening or updating a draft, starting remote CI, marking ready, merging, and deploying as distinct mutations. Perform only the stages actually authorized. Do not disturb unrelated dirty state or add opportunistic cleanup.
+
+For contract-first Stages 1–2, the `agentic-development` skill's local-first feedback loop controls publication cadence. Instructions below about what to do after a push never authorize the push itself and must not interrupt rapid local human iteration.
 
 ## Issue links and titles
 
@@ -184,9 +186,9 @@ Preserve original history and author metadata whenever practical:
 
 When merging is authorized, prefer a merge commit because it preserves commits, ordering, and authors. Do not squash-merge by default, especially with multiple authors. Use squash or rebase merge only when explicitly requested or required by repository policy; preserve required attribution and make the history loss or rewrite clear.
 
-## Keep the PR current after every push
+## Keep the PR current after every authorized publication push
 
-After every push:
+After every explicitly authorized publication push:
 
 1. Re-read the cumulative diff against the current base.
 2. Update the title if delivered scope changed.
@@ -198,7 +200,9 @@ Never let the description claim work absent from the branch or omit material beh
 
 ## CI and feedback
 
-After every push, watch relevant CI and automated review to terminal states. Inspect failures, cancellations, skipped required checks, stale checks, and all feedback channels:
+After every explicitly authorized publication push, ensure relevant CI and automated review eventually reach terminal states. During active contract-first Stages 1–2, do not block the human's local experience loop waiting for remote checks and do not publish another revision merely to satisfy intermediate automated feedback. Reconcile the published candidate's checks and feedback before requesting exact-commit agreement or presenting the PR as ready.
+
+Inspect failures, cancellations, skipped required checks, stale checks, and all feedback channels:
 
 - human reviews, inline threads, and PR comments;
 - tests, lint, documentation, contract generation, migrations, and compatibility;
