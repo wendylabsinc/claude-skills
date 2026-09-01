@@ -49,7 +49,7 @@ Prefer one coherent user, product, or operational outcome per PR. A PR should ha
 Split work when parts have meaningfully different:
 
 - outcomes or issue relationships;
-- risk, rollback, or deployment boundaries;
+- risk, rollback, deployment, or durable contract boundaries;
 - reviewers or ownership domains;
 - release timing;
 - dependencies that can land independently.
@@ -57,6 +57,29 @@ Split work when parts have meaningfully different:
 Do not split mechanically by file count, language, directory, or implementation layer. Keep supporting refactors with their consumer when they have no independent value. Do not create a foundation PR merely to make the visible feature PR look smaller.
 
 A split PR must still be coherent. State what it delivers, test it at its actual boundary, and use **Advances** until the issue is genuinely complete. Only the PR that completes the remaining issue may use **Closes**.
+
+## Durable boundary changes
+
+Give disproportionate attention to interfaces that users, clients, persisted data, or other repositories will depend on and that are costly to reverse after release. Inspect the diff specifically for:
+
+- **Database schemas:** tables, columns, types, constraints, indexes with semantic impact, persisted meanings, data migrations, compatibility windows, and rollback behavior.
+- **gRPC and protobuf contracts:** services, RPCs, messages, field numbers, field presence, enum values, wire meaning, error behavior, and compatibility or reservation requirements.
+- **REST APIs:** methods, paths, authentication, request and response shapes, status codes, error contracts, pagination, defaults, and version compatibility.
+- **Public SDK APIs:** exported modules, types, functions, signatures, protocol conformances, behavior guarantees, errors, concurrency semantics, platform support, deprecations, and source or binary compatibility.
+- **User interfaces:** changes to the journey people see—available actions, navigation, state, terminology, feedback, accessibility, and screenshots where useful.
+- **Command-line interfaces:** commands, flags, arguments, defaults, prompts, output formats, exit codes, configuration, environment variables, and scripting compatibility.
+
+When one of these boundaries changes, add a concise **Boundary changes** section or equivalent repository-template content. Describe only the externally observable contract delta:
+
+```markdown
+## Boundary changes
+- **REST:** `POST /devices` now returns `409 device_already_exists` for a duplicate identity instead of a generic `400`.
+- **CLI:** `wendy deploy --wait` now exits nonzero when device confirmation times out; scripts that ignored the prior timeout message may need adjustment.
+```
+
+Use before → after wording when it removes ambiguity. State whether the change is additive, compatible, deprecated, or breaking, and mention required migration, rollout ordering, or rollback constraints. If several repositories consume the boundary, identify the affected consumers or linked PRs.
+
+Keep this section succinct. Do not list private helpers, handlers, ORM models, view types, internal refactors, or other replaceable implementation mechanics unless they materially alter the contract, compatibility, risk, or review strategy. If no durable boundary changed, do not add an empty section merely to satisfy a template.
 
 ## Stacking
 
@@ -105,7 +128,7 @@ Derive the title and body from the actual diff and tests, not from an intended p
 1. Re-read the cumulative diff against the current base.
 2. Update the title if the delivered scope changed.
 3. Update issue, dependency, and successor links.
-4. Update **In plain terms**, summary, trade-offs, tests, rollout notes, and follow-ups.
+4. Update **In plain terms**, summary, durable boundary changes, trade-offs, tests, rollout notes, and follow-ups.
 5. Remove claims invalidated by new commits.
 
 Never let the PR description describe work that is no longer in the branch or omit material behavior added later.
@@ -118,7 +141,7 @@ Review all feedback channels:
 
 - human reviews and inline threads;
 - issue comments on the PR;
-- test, lint, documentation, and compatibility checks;
+- test, lint, documentation, contract-generation, migration, and compatibility checks;
 - security, dependency, static-analysis, and AI review findings.
 
 Address every finding within the authorized scope:
@@ -142,6 +165,7 @@ Mark a PR ready only when:
 - required tests and checks are green;
 - all actionable human and automated feedback is addressed;
 - invalid findings are narrowly resolved or suppressed with rationale;
+- durable schema, API, SDK, UI, and CLI boundary changes are concise, explicit, and compatibility-reviewed where applicable;
 - dependencies, migrations, rollout, and follow-ups are explicit where material;
 - the branch is mergeable and has no unresolved conflicts;
 - the PR is not knowingly incomplete or blocked.

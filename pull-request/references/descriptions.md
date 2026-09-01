@@ -61,6 +61,21 @@ Prefer outcome-focused wording:
 - Good: “Start refreshes quickly, then back off to the configured interval.”
 - Bad: “Add `increasingRefreshInterval` and call `delay()`.”
 
+## Boundary changes
+
+Add this section only when the PR changes a durable external or user-facing boundary: database schema, gRPC/protobuf, REST, public SDK, UI journey, or CLI contract.
+
+Use one succinct bullet per changed boundary. Describe the externally observable before → after behavior, compatibility classification, and migration or rollout consequence when material. Focus on what clients, users, persisted data, or downstream repositories must now rely on—not the internal classes or functions used to implement it.
+
+```markdown
+## Boundary changes
+- **gRPC:** `WatchDevices` adds the optional `disconnected_reason` field as field 8; older clients continue to ignore it.
+- **SDK:** `Device.events` is now an `AsyncSequence` rather than a callback registration API. Existing callers must migrate before the deprecated callback is removed.
+- **UI:** Organization selection now requires an explicit confirmation before changing the active device list.
+```
+
+Do not add an empty “No boundary changes” section unless the repository template requires one.
+
 ## Tests
 
 Record what was actually run and the result implied by the PR's current commit. Include focused commands, manual validation, or a concise explanation when tests were not run. Do not list intended, stale, or unrelated validation.
@@ -79,7 +94,7 @@ Add only when useful:
 - Evidence for UI changes.
 
 ## Rollout
-- Migration, compatibility, deployment, or rollback notes.
+- Migration, compatibility, deployment, or rollback notes not already captured with a boundary change.
 
 ## Follow-ups
 - Known work intentionally outside this PR.
