@@ -4,6 +4,8 @@ Use these as concise starting points, not mandatory boilerplate. Remove sections
 
 The contract is the code diff at an exact commit. PR prose only indexes and explains declarations, stubs, mocks, fixtures, previews, and tests that reviewers can inspect. A document or description without concrete contract code is not a contract-first PR.
 
+Use the final intended production file layout and ordinary type names from the start. The review layer should look like the finished program with method bodies and replaceable private helpers omitted. Do not create `*Contract`, `*Structure`, `*Proposal`, `*Spec`, or `*Stub` source files or a monolithic review-only container that the implementation will later delete or split. Normal mocks, fixtures, previews, and tests may live in their standard support locations.
+
 ## Local iteration before publication
 
 Stages 1–2 are a rapid local loop by default:
@@ -106,7 +108,7 @@ Use this only when structural exploration is substantial enough to deserve a sep
 - Only unresolved structural decisions requiring human input.
 ```
 
-The **Agreed structure** prose indexes the concrete structure code; it does not replace it. The structure PR must not redesign agreed boundaries. If it needs to, update and re-agree the boundary code first.
+The **Agreed structure** prose indexes the concrete structure code; it does not replace it. Each listed source file and declaration should be the actual production skeleton that the implementation child will retain and fill in. The structure PR must not redesign agreed boundaries. If it needs to, update and re-agree the boundary code first.
 
 ## Implementation PR
 

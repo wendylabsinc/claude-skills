@@ -27,6 +27,10 @@ Contract code can include:
 
 Method bodies and other holes left empty or minimal mark delegated implementation. Documentation, diagrams, screenshots, and the PR body may clarify or index the code, but a prose-only proposal is not a contract.
 
+Contract code is the skeleton of the final program, not a parallel specification layer. Put declarations in their intended production modules and files, using the names, visibility, ownership, dependency direction, and entry points the finished implementation should retain. The implementation stage should fill bodies and add replaceable private helpers behind that skeleton—not delete a review-only representation and recreate the real program elsewhere.
+
+Do not create catch-all or shadow artifacts named `*Contract`, `*Structure`, `*Proposal`, `*Spec`, or `*Stub` solely to hold the review layer. Do not collapse types into one special file when the agreed final structure places them in separate real files. Mocks, fakes, fixtures, previews, and tests remain appropriate when they live in the repository's normal support locations and use ordinary role-based names. A special preview host may stay local when it exists only to accelerate iteration.
+
 The initial contract is not required to be independently shippable. Prefer code that compiles or type-checks because it makes the agreement precise, but the contract's defining property is that humans can inspect and agree the partial program before implementation fills the holes.
 
 ## Core principles
@@ -152,6 +156,8 @@ Humans may then promote internal structure they want to explore or preserve into
 
 Do not mislabel these as external boundary changes. Record them under **Agreed structure** and include only details the human requests, details required by repository architecture, or seams that would be disruptive to change after implementation spreads. Avoid predesigning every helper, local algorithm, or function body.
 
+When structure is selected, express it through the real final file and type layout. A structure PR should look like the implementation with its guts missing: intended production files, actual declarations, real relationships, minimal bodies, and no replaceable helpers yet. Never introduce a monolithic “structure” file or review-only namespace that the implementation will immediately dismantle.
+
 Keep modest structural additions in the same contract PR. In the rare case where structure needs substantial separate exploration, create a three-level stack:
 
 1. **Boundary PR** — hard-to-change external behavior and user journey.
@@ -265,6 +271,9 @@ Avoid:
 - creating a separate structure PR when a small addition to the contract PR would suffice;
 - using a structure layer to specify every helper or function body;
 - treating a prose document or PR body as the contract instead of real code;
+- creating special `Contract`, `Structure`, `Proposal`, `Spec`, or `Stub` source files or namespaces instead of the final program skeleton;
+- collapsing final modules, views, or types into one review-only file that implementation must later split apart;
+- replacing the contract skeleton wholesale during implementation rather than filling its holes;
 - pushing each local UI or contract commit during active human iteration;
 - letting PR descriptions, remote CI, or automated feedback interrupt the Stage 1–2 local experience loop;
 - treating feedback on a local preview as authorization to publish it;
