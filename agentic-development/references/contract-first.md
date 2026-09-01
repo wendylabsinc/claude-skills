@@ -2,6 +2,8 @@
 
 Use these as concise starting points, not mandatory boilerplate. Remove sections that do not carry sourced decisions or useful evidence, and follow the repository's template when it differs.
 
+The contract is the code diff at an exact commit. PR prose only indexes and explains declarations, stubs, mocks, fixtures, previews, and tests that reviewers can inspect. A document or description without concrete contract code is not a contract-first PR.
+
 ## Orientation decision
 
 ```markdown
@@ -35,29 +37,28 @@ Use these as concise starting points, not mandatory boilerplate. Remove sections
 - **SDK:** `Device.events` exposes an `AsyncSequence` while retaining the callback API as deprecated for one release.
 - **UI:** Device details show the disconnect reason beside the current connection state.
 
-## Experience contract
-- Selecting a disconnected device shows its reason without leaving the details screen.
-- Existing clients continue to receive the current connection state unchanged.
+## Contract code
+- `api/device_events.proto` defines the wire contract.
+- `DeviceEvents.swift` defines the SDK declarations and mock.
+- `DeviceDetailView.swift` and `DeviceViewModel.swift` define the view, state, and intentional implementation holes.
+- Contract tests and previews make the expected journey executable or inspectable.
 
 ## Agreed structure
-- Add only internal structure deliberately promoted during human iteration, such as view/view-model responsibilities, module seams, ownership, protocols, concurrency isolation, or test seams.
+- Summarize only internal structure deliberately promoted during human iteration; the corresponding module, type, protocol, view/view-model, mock, or test stubs in the diff are authoritative.
 
-## Concrete specification
-- Public declarations, protocol/schema diffs, selected structural stubs, help text, examples, screenshots, fixtures, or contract tests in this branch are authoritative.
-
-## Deliberately omitted
-- Runtime transport and storage implementation
+## Deliberately unimplemented
+- Runtime transport and storage method bodies
 - Private details not deliberately included in **Agreed structure**
 - Performance optimizations that do not alter the contract
 
 ## Contract validation
-- `command that verifies schemas, docs, examples, or compile-safe stubs`
+- `command that type-checks declarations, builds stubs, verifies schemas, and exercises mocks/previews/contract tests`
 
 ## Open decisions
 - Only genuinely unresolved boundary decisions requiring human input.
 ```
 
-The issue link supplies the original problem; do not copy it into the contract PR. The actual boundary files, selected structural stubs, docs, examples, and tests—not only this body—form the specification. Omit **Agreed structure** from the initial agent draft when no structure has been selected; add it as humans promote details during iteration.
+The issue link supplies the original problem; do not copy it into the contract PR. The actual declarations, stubs, mocks, fixtures, previews, and tests form the contract. Documentation accompanies them but never substitutes for them. Omit **Agreed structure** from the initial agent draft when no structure has been selected; add it as humans promote concrete code into the agreement.
 
 ## Optional structure PR
 
@@ -71,24 +72,29 @@ Use this only when structural exploration is substantial enough to deserve a sep
 
 > **In plain terms:** This proposes the internal shape humans will maintain without filling in the runtime implementation.
 
+## Structure code
+- `DeviceView.swift` stubs rendering and user intents.
+- `DeviceViewModel.swift` defines state ownership and main-actor isolation with empty behavior bodies.
+- `DeviceEvents.swift` defines the protocol plus a mock used by previews and tests.
+
 ## Agreed structure
 - `DeviceView` renders state and emits user intent.
 - `DeviceViewModel` owns loading and state transitions on the main actor.
 - A `DeviceEvents` protocol provides the test and transport seam.
 
-## Deliberately omitted
+## Deliberately unimplemented
 - Concrete transport adapter
 - Retry and buffering mechanics
 - Private helpers and optimizations
 
 ## Structure validation
-- `command that verifies declarations, dependency direction, or compile-safe stubs`
+- `command that type-checks the real declarations, dependency direction, mocks, previews, and stubs`
 
 ## Open decisions
 - Only unresolved structural decisions requiring human input.
 ```
 
-The structure PR must not redesign agreed boundaries. If it needs to, update and re-agree the boundary PR first.
+The **Agreed structure** prose indexes the concrete structure code; it does not replace it. The structure PR must not redesign agreed boundaries. If it needs to, update and re-agree the boundary code first.
 
 ## Implementation PR
 

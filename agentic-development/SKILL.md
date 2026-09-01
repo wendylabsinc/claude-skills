@@ -11,10 +11,28 @@ Spend human attention where it has the greatest leverage: durable product and te
 
 Load the `pull-request` skill for descriptions, relationship metadata, stack topology, CI, feedback, history, and merge mechanics. This skill is authoritative for the development lifecycle: mode selection, human review surfaces, agreement gates, implementation authorization, experiential validation, and contract drift. The pull-request skill's lifecycle appendix is only a pointer here.
 
+## What a contract is
+
+A contract is an agreed partial program at an exact commit. Real code—not prose—defines what humans have decided and what agents may fill in.
+
+Contract code can include:
+
+- schema and migration declarations;
+- protobuf, API, and SDK declarations;
+- CLI command and option types;
+- UI views, view models, state types, and previews;
+- module and protocol seams;
+- stubs, mocks, fakes, fixtures, snapshots, and executable examples;
+- contract tests that make observable behavior concrete.
+
+Method bodies and other holes left empty or minimal mark delegated implementation. Documentation, diagrams, screenshots, and the PR body may clarify or index the code, but a prose-only proposal is not a contract.
+
+The initial contract is not required to be independently shippable. Prefer code that compiles or type-checks because it makes the agreement precise, but the contract's defining property is that humans can inspect and agree the partial program before implementation fills the holes.
+
 ## Core principles
 
 - The issue owns the problem.
-- The agent's initial contract owns the durable behavior and boundaries.
+- The agent's initial partial program encodes the durable behavior and boundaries.
 - Human iteration may promote selected internal structure into the review contract.
 - The implementation owns the replaceable mechanics left behind the agreed boundary and structure.
 - A runnable experience tests whether the contract is actually useful.
@@ -84,14 +102,14 @@ Create a draft contract PR containing the smallest faithful, reviewable expressi
 
 - database schema and migration shape;
 - gRPC/protobuf, REST, or other external protocol definitions;
-- public SDK signatures, documentation, examples, errors, and compatibility intent;
-- CLI commands, flags, help, output, exit behavior, and examples;
-- user-visible UI journeys, wording, state, accessibility, screenshots, or prototypes;
+- public SDK declarations, error types, compatibility shims, mocks, and executable examples;
+- CLI command, option, output, and exit-status types with stubbed execution;
+- concrete UI view, view-model, state, preview, and mock-data stubs expressing the user journey;
 - cross-repository consumer relationships;
-- fixtures, snapshots, usage examples, or executable contract tests where they clarify behavior;
-- the minimum compile-safe stubs required to make the contract concrete.
+- fixtures, snapshots, usage examples, mocks, or executable contract tests where they clarify behavior;
+- the minimum real code needed to make decided boundaries concrete while leaving implementation holes obvious.
 
-Keep stubs inert, unreachable, mocked, or feature-gated. Do not accidentally expose unfinished behavior. A contract PR may remain draft while incomplete, but it must not be presented as ready with broken builds, failing placeholders, or production-visible nonfunctional APIs.
+The code diff is authoritative. Documentation and the PR description only explain where to look and why decisions matter. Keep runtime stubs inert, unreachable, mocked, or feature-gated so unfinished behavior cannot be mistaken for production functionality. Prefer compiling or type-checking stubs and focused contract validation, but keep the PR draft when intentional holes prevent normal readiness.
 
 Initially exclude private architecture, helper types, storage mechanics, control flow, and optimization choices unless repository conventions already require them or they constrain the durable contract or create material risk. This is a starting point for human iteration, not a restriction on what the human may later include.
 
@@ -126,7 +144,7 @@ Keep modest structural additions in the same contract PR. In the rare case where
 2. **Structure PR** — selected internal shape and maintainability seams.
 3. **Implementation PR** — remaining mechanics.
 
-Each layer is based on the previous one and receives explicit agreement at an exact commit. Keep unresolved decisions explicit. Update the actual stubs, docs, examples, types, and tests as agreement changes; do not let the PR description become a substitute for the contract diff.
+Each layer is based on the previous one and receives explicit agreement at an exact commit. Keep unresolved decisions explicit. Update the actual stubs, mocks, types, previews, fixtures, and tests as agreement changes; update accompanying docs as needed, but never let the PR description or a design document substitute for the contract code.
 
 Before implementation, record agreement for every applicable layer and identify the exact final contract commit.
 
@@ -166,25 +184,29 @@ Live experience complements rather than replaces automated tests, security revie
 If implementation or live experience reveals a boundary or agreed-structure flaw:
 
 1. Stop treating the implementation PR as ready.
-2. Update the owning boundary or structure PR and its concrete stubs, docs, examples, types, and tests.
+2. Update the owning boundary or structure PR's concrete declarations, stubs, mocks, types, previews, fixtures, and tests, plus any accompanying docs.
 3. Explain why the contract changed and which users, consumers, or maintainers are affected.
 4. Obtain renewed human agreement on that layer's new commit.
 5. Reconcile every descendant branch and update **Contract drift** with the decision link.
 
 Do not hide boundary changes in implementation commits or disguise agreed-structure drift as an ordinary internal refactor.
 
-### Stage 6: Ready and merge
+### Stage 6: Ready and integrate
 
-Before any PR in the stack is ready:
+Before final integration:
 
-- the boundary layer reflects the agreed user and client behavior;
-- any structure layer reflects the internal shape humans explicitly chose to preserve;
-- the implementation conforms to every agreed layer or records approved drift;
+- the boundary code reflects the agreed user and client behavior;
+- any structure code reflects the internal shape humans explicitly chose to preserve;
+- the implementation fills the intended holes and conforms to every agreed layer or records approved drift;
 - previews and validation reflect current commits;
-- CI and feedback satisfy the `pull-request` ready gates;
-- every parent PR is safe to land before its child, usually through inert stubs or feature gating.
+- CI and feedback satisfy the `pull-request` ready gates.
 
-Merge boundary, optional structure, and implementation PRs in order. Prefer merge commits so every stage's history, authors, and review surface remain visible. Do not leave the default branch broken or expose unfinished behavior between merges.
+A contract PR is a review layer, not necessarily an independently shippable increment. Choose a repository-supported integration strategy that preserves its commits and authors without exposing unfinished behavior:
+
+- **Safe parent merge:** when stubs are inert or feature-gated, merge boundary, optional structure, and implementation in order.
+- **Cumulative final merge:** when a parent must not land alone, retarget or otherwise merge the final implementation branch with the agreed parent commits included, then close the review-only parent PRs as included rather than merging broken intermediate states.
+
+Prefer merge commits and never squash away the contract, structure, or contributor history. Verify that the default branch remains functional and production does not observe unfinished stubs.
 
 ## Evidence-led implementation review
 
@@ -220,11 +242,12 @@ Avoid:
 - having the agent predesign unrequested implementation architecture in the initial boundary draft;
 - creating a separate structure PR when a small addition to the contract PR would suffice;
 - using a structure layer to specify every helper or function body;
+- treating a prose document or PR body as the contract instead of real code;
 - merging stubs that expose nonfunctional production behavior;
 - treating lack of feedback as contract approval;
 - beginning implementation without the required authorization;
 - silently changing boundaries or agreed structure in the implementation PR;
 - treating “opaque” implementation as exempt from review or security;
 - offering a stale preview built from a different commit;
-- merging the contract into a broken interval before its child;
+- assuming a review-only contract must merge independently and creating a broken interval before its child;
 - squashing away the distinction or contributor history between stages.
