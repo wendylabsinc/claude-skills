@@ -1,6 +1,6 @@
 ---
 name: agentic-development
-description: "Guide AI-led software delivery through integrated or contract-first development. Use when choosing how humans and agents should collaborate on implementation; creating a specification or stub PR; separating durable contracts from replaceable implementation; waiting for human contract approval; implementing autonomously behind an agreed boundary; producing preview builds or live experiences; or handling boundary drift between a contract PR and its implementation PR."
+description: "Guide AI-led software delivery through integrated or contract-first development. Use when choosing how humans and agents should collaborate on implementation; creating a boundary, structure, specification, or stub PR; promoting human-selected code structure into an agreed contract; waiting for human agreement; implementing autonomously behind agreed layers; producing preview builds or live experiences; or handling contract drift across a two- or three-level PR stack."
 ---
 
 # Agentic Development
@@ -14,8 +14,9 @@ Load the `pull-request` skill for PR mechanics, descriptions, stacking, CI, feed
 ## Core principles
 
 - The issue owns the problem.
-- The contract owns the durable behavior and boundaries.
-- The implementation owns the replaceable mechanics behind that contract.
+- The agent's initial contract owns the durable behavior and boundaries.
+- Human iteration may promote selected internal structure into the review contract.
+- The implementation owns the replaceable mechanics left behind the agreed boundary and structure.
 - A runnable experience tests whether the contract is actually useful.
 - Automation reviews implementation deeply; “compiled” or opaque never means unchecked.
 - Any implementation discovery that changes the contract returns to human review.
@@ -39,7 +40,7 @@ Humans and agents review the same PR normally, with extra attention to durable b
 
 ### Contract-first mode
 
-Use a two-PR stack when:
+Use a two-PR stack by default—and rarely a three-PR stack—when:
 
 - durable boundaries can be meaningfully agreed before implementation;
 - several clients, repositories, or teams depend on the contract;
@@ -48,18 +49,19 @@ Use a two-PR stack when:
 - a preview, experimental build, artifact, or reproducible journey can validate the result;
 - separating contract review will make the eventual implementation easier to evaluate.
 
-Do not use contract-first mode merely because the implementation is large. A bad split creates ceremony without moving important decisions earlier.
+Do not use contract-first mode merely because the implementation is large. A bad split creates ceremony without moving important decisions earlier. Add a separate structure PR only when human exploration of internal shape is substantial enough to justify its own agreement gate.
 
-During orientation, state the recommended mode, why it fits, the durable boundaries involved, how humans will experience the result, and the next authorization gate.
+During orientation, state the recommended mode, why it fits, the durable boundaries involved, whether human-selected structure might warrant a separate layer, how humans will experience the result, and the next authorization gate.
 
 ## Authorization gates
 
 Treat these as separate gates:
 
-1. Authorize contract exploration and the draft contract PR.
-2. Agree to the contract.
-3. Authorize implementation, unless that authority was explicitly bundled with contract agreement.
-4. Authorize marking ready, merging, and deployment according to project policy.
+1. Authorize boundary exploration and the initial draft contract PR.
+2. Agree to the boundary contract.
+3. When structure is promoted into the contract, agree to that structure in the same PR or an optional structure PR.
+4. Authorize implementation, unless that authority was explicitly bundled with the final contract agreement.
+5. Authorize marking ready, merging, and deployment according to project policy.
 
 Silence, inactivity, passing CI, or ordinary review comments do not constitute contract agreement. Record explicit human agreement in the contract PR or linked decision record.
 
@@ -76,9 +78,9 @@ If implementation authorization was granted in advance, the agent may begin afte
 
 ## Contract-first workflow
 
-### Stage 1: Draft the contract
+### Stage 1: Agent drafts the boundary contract
 
-Create a draft contract PR containing the smallest faithful, reviewable expression of the intended behavior:
+Create a draft contract PR containing the smallest faithful, reviewable expression of the intended behavior. The agent chooses this initial review surface from the hard-to-change boundary guidance rather than asking a human to specify everything first:
 
 - database schema and migration shape;
 - gRPC/protobuf, REST, or other external protocol definitions;
@@ -91,13 +93,13 @@ Create a draft contract PR containing the smallest faithful, reviewable expressi
 
 Keep stubs inert, unreachable, mocked, or feature-gated. Do not accidentally expose unfinished behavior. A contract PR may remain draft while incomplete, but it must not be presented as ready with broken builds, failing placeholders, or production-visible nonfunctional APIs.
 
-Exclude private architecture, helper types, storage mechanics, control flow, and optimization choices unless they constrain the durable contract or create material risk.
+Initially exclude private architecture, helper types, storage mechanics, control flow, and optimization choices unless repository conventions already require them or they constrain the durable contract or create material risk. This is a starting point for human iteration, not a restriction on what the human may later include.
 
 Use the contract PR template in [references/contract-first.md](references/contract-first.md).
 
-### Stage 2: Iterate with humans
+### Stage 2: Humans refine the review contract
 
-Focus discussion on:
+Focus discussion first on:
 
 - what users and clients can observe;
 - before → after behavior;
@@ -107,15 +109,32 @@ Focus discussion on:
 - the user journey and how it will be experienced;
 - decisions that become costly after release.
 
-Keep unresolved decisions explicit. Update the actual stubs, docs, examples, and tests as agreement changes; do not let the PR description become a substitute for the contract diff.
+Humans may then promote internal structure they want to explore or preserve into the review contract, such as:
 
-Before implementation, record explicit agreement and identify the exact contract commit that was agreed.
+- module and package seams;
+- UI view and view-model types and responsibilities;
+- state ownership and data flow;
+- protocols and dependency direction;
+- actor or concurrency isolation;
+- persistence abstractions and test seams.
+
+Do not mislabel these as external boundary changes. Record them under **Agreed structure** and include only details the human requests, details required by repository architecture, or seams that would be disruptive to change after implementation spreads. Avoid predesigning every helper, local algorithm, or function body.
+
+Keep modest structural additions in the same contract PR. In the rare case where structure needs substantial separate exploration, create a three-level stack:
+
+1. **Boundary PR** — hard-to-change external behavior and user journey.
+2. **Structure PR** — selected internal shape and maintainability seams.
+3. **Implementation PR** — remaining mechanics.
+
+Each layer is based on the previous one and receives explicit agreement at an exact commit. Keep unresolved decisions explicit. Update the actual stubs, docs, examples, types, and tests as agreement changes; do not let the PR description become a substitute for the contract diff.
+
+Before implementation, record agreement for every applicable layer and identify the exact final contract commit.
 
 ### Stage 3: Implement behind the contract
 
-Create the implementation branch from the agreed contract branch. Link it as an implementation PR and describe only its delta, evidence, material trade-offs, and experience path.
+Create the implementation branch from the final agreed contract parent—the combined contract branch in a two-level stack or the structure branch in a three-level stack. Link it as an implementation PR and describe only its delta, evidence, material trade-offs, and experience path.
 
-Within the agreed boundary, agents may choose simple internal designs, iterate, refactor, and fix implementation defects without requesting human review of every replaceable choice. They must still:
+Within the agreed boundary and any promoted structure, agents may choose simple internal designs, iterate, refactor, and fix implementation defects without requesting human review of every replaceable choice. They must still:
 
 - follow repository and architecture constraints;
 - keep commits and authorship honest;
@@ -123,7 +142,7 @@ Within the agreed boundary, agents may choose simple internal designs, iterate, 
 - watch CI and address all human and automated feedback;
 - use automated security, correctness, compatibility, and code review deeply;
 - update the PR description after every push;
-- preserve the agreed contract unless boundary drift is handled explicitly.
+- preserve every agreed contract layer unless drift is handled explicitly.
 
 Do not optimize for making implementation code look opaque. Optimize for making it trustworthy through tests, review, observability, and an experience humans can validate.
 
@@ -142,29 +161,30 @@ The implementation PR includes a concise **Try it** section with the artifact or
 
 Live experience complements rather than replaces automated tests, security review, compatibility checks, and migration validation.
 
-### Stage 5: Handle boundary drift
+### Stage 5: Handle contract drift
 
-If implementation or live experience reveals a contract flaw:
+If implementation or live experience reveals a boundary or agreed-structure flaw:
 
 1. Stop treating the implementation PR as ready.
-2. Update the contract PR's stubs, docs, examples, tests, and **Boundary changes**.
-3. Explain why the boundary changed and which consumers are affected.
-4. Obtain renewed human agreement on the new contract commit.
-5. Reconcile the implementation branch and update **Boundary drift** with the decision link.
+2. Update the owning boundary or structure PR and its concrete stubs, docs, examples, types, and tests.
+3. Explain why the contract changed and which users, consumers, or maintainers are affected.
+4. Obtain renewed human agreement on that layer's new commit.
+5. Reconcile every descendant branch and update **Contract drift** with the decision link.
 
-Do not hide contract changes in implementation commits or describe drift as an internal refactor.
+Do not hide boundary changes in implementation commits or disguise agreed-structure drift as an ordinary internal refactor.
 
 ### Stage 6: Ready and merge
 
-Before either PR is ready:
+Before any PR in the stack is ready:
 
-- the contract reflects the agreed user and client behavior;
-- the implementation conforms to that exact contract or records approved drift;
+- the boundary layer reflects the agreed user and client behavior;
+- any structure layer reflects the internal shape humans explicitly chose to preserve;
+- the implementation conforms to every agreed layer or records approved drift;
 - previews and validation reflect current commits;
 - CI and feedback satisfy the `pull-request` ready gates;
-- the contract PR is safe to land before the implementation, usually through inert stubs or feature gating.
+- every parent PR is safe to land before its child, usually through inert stubs or feature gating.
 
-Merge the contract first and the implementation second. Prefer merge commits so the contract and implementation histories, authors, and review boundaries remain visible. Do not leave the default branch broken or expose unfinished behavior between merges.
+Merge boundary, optional structure, and implementation PRs in order. Prefer merge commits so every stage's history, authors, and review surface remain visible. Do not leave the default branch broken or expose unfinished behavior between merges.
 
 ## Evidence-led implementation review
 
@@ -177,7 +197,7 @@ Humans may inspect any implementation code. Human implementation review remains 
 - supply-chain, deployment, IAM, and production security;
 - behavior whose failure cannot be repaired safely after release.
 
-For lower-risk replaceable mechanics, human review can focus on contract conformance and live behavior while agents, CI, tests, scanners, and automated reviewers inspect the implementation in depth. Invalid automated findings still require narrow, evidence-backed resolution rather than being ignored.
+For lower-risk replaceable mechanics, human review can focus on boundary and agreed-structure conformance plus live behavior while agents, CI, tests, scanners, and automated reviewers inspect the remaining implementation in depth. Invalid automated findings still require narrow, evidence-backed resolution rather than being ignored.
 
 ## Project preview capability
 
@@ -197,11 +217,13 @@ Preview infrastructure is an enabling capability, not a prerequisite for every c
 Avoid:
 
 - using contract-first mode for changes too small to benefit;
-- putting implementation architecture into the contract PR;
+- having the agent predesign unrequested implementation architecture in the initial boundary draft;
+- creating a separate structure PR when a small addition to the contract PR would suffice;
+- using a structure layer to specify every helper or function body;
 - merging stubs that expose nonfunctional production behavior;
 - treating lack of feedback as contract approval;
 - beginning implementation without the required authorization;
-- silently changing boundaries in the implementation PR;
+- silently changing boundaries or agreed structure in the implementation PR;
 - treating “opaque” implementation as exempt from review or security;
 - offering a stale preview built from a different commit;
 - merging the contract into a broken interval before its child;
