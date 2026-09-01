@@ -141,6 +141,8 @@ Boundary → Structure → Implementation   # rare
 
 Every contract layer is real code at an exact commit: declarations, protocol or schema definitions, migrations, types, stubs, mocks, fixtures, views, view models, tests, examples, or previews. PR prose and standalone design documents may explain or index that code, but they are not the contract and cannot replace it.
 
+The code must occupy its intended final modules and files under ordinary production names. Do not create review-only `Contract`, `Structure`, `Proposal`, `Spec`, or `Stub` source files, namespaces, or catch-all containers unless that name is genuinely part of the final product architecture. A structure layer is the real program skeleton with implementation bodies and replaceable private helpers omitted; its child fills those holes instead of replacing the skeleton.
+
 Represent the layers mechanically:
 
 ```markdown
