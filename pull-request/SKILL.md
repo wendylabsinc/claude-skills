@@ -128,7 +128,7 @@ For every stack:
 - update bases and links as parents merge;
 - avoid overlapping edits that create cascading conflicts;
 - do not present a child as independently mergeable while its parent is unresolved;
-- merge in dependency order without casually rewriting published history.
+- preserve the stage commits even when review-only parents are not independently merged.
 
 Contract-first work uses one of these shapes:
 
@@ -136,6 +136,8 @@ Contract-first work uses one of these shapes:
 Contract → Implementation
 Boundary → Structure → Implementation   # rare
 ```
+
+Every contract layer is real code at an exact commit: declarations, protocol or schema definitions, migrations, types, stubs, mocks, fixtures, views, view models, tests, examples, or previews. PR prose and standalone design documents may explain or index that code, but they are not the contract and cannot replace it.
 
 Represent the layers mechanically:
 
@@ -156,7 +158,7 @@ Represent the layers mechanically:
 - **Implements:** [#102 Agree the structure](...)
 ```
 
-The contract or boundary PR records **Boundary changes**. Selected internal seams use **Agreed structure** in the combined contract or optional structure PR. The implementation PR links rather than repeats them and includes:
+The contract or boundary PR records **Boundary changes** and points reviewers to the concrete contract code. Selected internal seams use **Agreed structure** in the combined contract or optional structure PR, but the actual type and module stubs remain authoritative. The implementation PR links rather than repeats them and includes:
 
 ```markdown
 ## Try it
@@ -167,7 +169,7 @@ The contract or boundary PR records **Boundary changes**. Selected internal seam
 - **Structure:** None.
 ```
 
-Omit inapplicable structure lines in a two-level stack. When drift exists, link the owning parent update and renewed agreement. The `agentic-development` skill defines when these layers are appropriate and how agreement works.
+Omit inapplicable structure lines in a two-level stack. When drift exists, link the owning parent update and renewed agreement. A contract PR is a review surface and does not need to be independently deployable; the `agentic-development` skill defines safe final integration, mode selection, and agreement workflow.
 
 ## Commits, history, and authorship
 
