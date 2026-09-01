@@ -255,6 +255,101 @@
                 "permissions",
                 "action-versions"
             ]
+        },
+        {
+            "name": "wendy-aaa-interop",
+            "source": "./wendy-aaa-interop",
+            "description": "The AAA contract between the wendy stack and the SaaS stack: responsibility split, two-key authority, credential shapes, signed artifacts, correlation_id, and the inter-service fabric. Foundation skill — pairs with wendy-certificates, wendy-device-enrollment, wendy-device-interop, wendy-security-baselines, wendy-self-hosted.",
+            "category": "development",
+            "keywords": [
+                "aaa",
+                "interop",
+                "pki-core",
+                "wendy-auth",
+                "wendy-cloud",
+                "spiffe",
+                "two-key-authority",
+                "ssf"
+            ]
+        },
+        {
+            "name": "wendy-certificates",
+            "source": "./wendy-certificates",
+            "description": "Requesting, renewing, and revoking certificates via pki-core: operator/service identity certs (token + proof-of-possession), entitlement-bearing certs via cloud grants, service accounts and CI without PATs, and key custody rules.",
+            "category": "development",
+            "keywords": [
+                "certificates",
+                "pki",
+                "csr",
+                "proof-of-possession",
+                "ml-dsa",
+                "service-accounts",
+                "renewal",
+                "revocation"
+            ]
+        },
+        {
+            "name": "wendy-device-enrollment",
+            "source": "./wendy-device-enrollment",
+            "description": "WendyOS device enrollment and cert lifecycle: tiers A/B/C, ACME/EST flows, online and airgapped first-touch, post-expiry recovery, pinned platform root, and trusted time with anti-rollback.",
+            "category": "development",
+            "keywords": [
+                "enrollment",
+                "acme",
+                "est",
+                "attestation",
+                "tpm",
+                "op-tee",
+                "trusted-time",
+                "provisioning"
+            ]
+        },
+        {
+            "name": "wendy-device-interop",
+            "source": "./wendy-device-interop",
+            "description": "wendy-agent runtime interop: poll-only postbox, verifying operator-signed changes (hash chains, high-water marks, TSA timestamps), image pulls through wendy-proxy, and the device fail-safe catalogue.",
+            "category": "development",
+            "keywords": [
+                "postbox",
+                "polling",
+                "hash-chain",
+                "rfc3161",
+                "wendy-proxy",
+                "image-pull",
+                "fail-safe",
+                "mtls"
+            ]
+        },
+        {
+            "name": "wendy-security-baselines",
+            "source": "./wendy-security-baselines",
+            "description": "Security invariants every Wendy interop change must respect: cloud-immune platform cap, fail-safe-only push signals, no bearer secrets, client-generated keys, PQ signing direction, tamper-evident audit, and a reject-on-sight anti-pattern list.",
+            "category": "development",
+            "keywords": [
+                "security",
+                "platform-cap",
+                "ssf",
+                "caep",
+                "no-bearer-tokens",
+                "audit",
+                "post-quantum",
+                "review"
+            ]
+        },
+        {
+            "name": "wendy-self-hosted",
+            "source": "./wendy-self-hosted",
+            "description": "The Wendy dual-path rule: the wendy stack must always run without the SaaS stack. Deployment profiles, pluggable workload-identity backends, never-assume-GCP list, and the self-hosted review checklist for interop PRs.",
+            "category": "development",
+            "keywords": [
+                "self-hosted",
+                "on-prem",
+                "airgapped",
+                "workload-identity",
+                "deployment-profiles",
+                "mtls",
+                "dual-path"
+            ]
         }
     ]
 }
