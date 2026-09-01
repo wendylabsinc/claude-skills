@@ -9,7 +9,7 @@ description: "Guide AI-led software delivery through integrated or contract-firs
 
 Spend human attention where it has the greatest leverage: durable product and technical boundaries, user experience, material trade-offs, and irreversible risk. Let agents and automation carry more of the replaceable implementation work while preserving evidence, security, and the ability for humans to inspect anything.
 
-Load the `pull-request` skill for PR mechanics, descriptions, stacking, CI, feedback, history, and merge readiness. This skill governs how development is staged and where human agreement is required.
+Load the `pull-request` skill for descriptions, relationship metadata, stack topology, CI, feedback, history, and merge mechanics. This skill is authoritative for the development lifecycle: mode selection, human review surfaces, agreement gates, implementation authorization, experiential validation, and contract drift. The pull-request skill's lifecycle appendix is only a pointer here.
 
 ## Core principles
 
