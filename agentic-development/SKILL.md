@@ -75,14 +75,14 @@ During orientation, state the recommended mode, why it fits, the durable boundar
 
 Treat these as separate gates:
 
-1. Authorize local boundary exploration and rapid contract iteration.
-2. Authorize publishing a contract checkpoint: commit, push, create or update the draft PR, and start remote CI. This may be bundled with gate 1 only when stated explicitly.
+1. Authorize local boundary exploration, rapid contract iteration, focused validation, and small isolated local commits.
+2. Authorize publishing a contract checkpoint: push the accumulated local commits, create or update the draft PR, and start remote CI. This may be bundled with gate 1 only when stated explicitly.
 3. Agree to the boundary contract at an exact published commit.
 4. When structure is promoted into the contract, agree to that structure in the same PR or an optional structure PR.
 5. Authorize implementation, unless that authority was explicitly bundled with the final contract agreement.
 6. Authorize marking ready, merging, and deployment according to project policy.
 
-Authorization to explore, edit, build locally, run a preview, or respond to UI feedback does not authorize committing, pushing, editing a PR, or starting and monitoring remote CI. Silence, inactivity, passing CI, or ordinary review comments do not constitute contract agreement. Record explicit human agreement in the contract PR or linked decision record.
+Authorization for contract-first Stages 1–2 includes small, coherent local commits that preserve the iteration history. It does not authorize pushing, editing a remote PR, or starting and monitoring remote CI. Silence, inactivity, passing CI, or ordinary review comments do not constitute contract agreement. Record explicit human agreement in the contract PR or linked decision record.
 
 If implementation authorization was granted in advance, the agent may begin after explicit contract agreement without asking a redundant question, but the prior authorization must be cited clearly.
 
@@ -112,7 +112,7 @@ Start in the worktree with the smallest faithful, reviewable expression of the i
 
 The code diff is authoritative. Documentation and a later PR description only explain where to look and why decisions matter. Keep runtime stubs inert, unreachable, mocked, or feature-gated so unfinished behavior cannot be mistaken for production functionality. Prefer compiling or type-checking stubs and focused local validation.
 
-Do not commit, push, create or edit a PR, run full suites, or start and monitor remote CI during this local draft unless the human explicitly asks for a published checkpoint. A request to implement Stage 1 authorizes the local contract loop, not publication. Keep an available preview, simulator, local service, or executable example running where that shortens feedback.
+Commit coherent contract changes locally throughout this draft so the iteration remains small, isolated, and recoverable. Do not push, create or edit a remote PR, run full suites, or start and monitor remote CI unless the human explicitly asks for a published checkpoint. A request to implement Stage 1 authorizes local commits as part of the contract loop, not publication. Keep an available preview, simulator, local service, or executable example running where that shortens feedback.
 
 Initially exclude private architecture, helper types, storage mechanics, control flow, and optimization choices unless repository conventions already require them or they constrain the durable contract or create material risk. This is a starting point for human iteration, not a restriction on what the human may later include.
 
@@ -124,11 +124,12 @@ Optimize this stage for a tight human feedback loop:
 
 1. Edit the contract code locally.
 2. Run only the focused local validation needed to keep the experience usable.
-3. Relaunch or refresh the preview, simulator, fixture, or example.
-4. Let the human try it and give feedback.
-5. Repeat without interrupting the loop for Git or remote PR mechanics.
+3. Commit the coherent change locally with a small, descriptive commit.
+4. Relaunch or refresh the preview, simulator, fixture, or example.
+5. Let the human try it and give feedback.
+6. Repeat without interrupting the loop for remote PR mechanics.
 
-Do not infer checkpoint authorization from feedback such as “make this bigger,” “try another layout,” or “show me.” Do not commit every tweak, push between iterations, edit the PR body, wait for CI, or chase automated findings while the human is actively shaping the contract. The working tree may intentionally be dirty during this loop; protect unrelated state and keep the local experience reproducible.
+Do not infer publication authorization from feedback such as “make this bigger,” “try another layout,” or “show me.” Preserve useful iterations as separate local commits; do not squash or rewrite them merely to make the eventual PR look cleaner. Do not push between iterations, edit the remote PR body, wait for CI, or chase automated findings while the human is actively shaping the contract. Protect unrelated state and keep the local experience reproducible.
 
 Focus discussion first on:
 
@@ -162,8 +163,8 @@ Each layer is based on the previous one and receives explicit agreement at an ex
 When the human explicitly asks to **checkpoint**, **publish**, **push**, or **update the PR**, turn the current candidate into a review artifact:
 
 1. Run focused validation appropriate to the contract.
-2. Create one coherent checkpoint commit without rewriting published history.
-3. Push once and create or update the draft contract PR using the template.
+2. Check that the accumulated local commits are coherent and the branch represents the candidate; do not squash or rewrite the iteration history by default.
+3. Push the local commits once and create or update the draft contract PR using the template.
 4. Start relevant remote checks, but do not block an active human iteration session waiting for them. Reconcile terminal results and feedback before asking for exact-commit agreement.
 5. Present the exact candidate commit and experience path.
 
@@ -264,7 +265,7 @@ Avoid:
 - creating a separate structure PR when a small addition to the contract PR would suffice;
 - using a structure layer to specify every helper or function body;
 - treating a prose document or PR body as the contract instead of real code;
-- committing and pushing each UI or contract tweak during active human iteration;
+- pushing each local UI or contract commit during active human iteration;
 - letting PR descriptions, remote CI, or automated feedback interrupt the Stage 1–2 local experience loop;
 - treating feedback on a local preview as authorization to publish it;
 - merging stubs that expose nonfunctional production behavior;
