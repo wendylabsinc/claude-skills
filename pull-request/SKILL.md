@@ -24,11 +24,11 @@ Do not disturb unrelated dirty state or broaden the change with opportunistic cl
 Choose one mode explicitly before publication:
 
 1. **Integrated mode** — the normal default. One PR contains the durable contract and its implementation, and humans review both at the depth warranted by risk.
-2. **Contract-first mode** — a two-PR stack. A draft contract PR contains the stubs, documentation, examples, and user-facing boundaries for human iteration; a child implementation PR makes that agreed contract operational and supplies evidence for experiencing it.
+2. **Contract-first mode** — normally a two-PR stack and rarely a three-PR stack. An agent first drafts the hard-to-change boundaries and concrete stubs for human iteration. Humans may promote additional structural decisions into the agreed contract. The final child implements everything left and supplies evidence for experiencing it.
 
 Use integrated mode for small changes, tightly coupled discovery, urgent fixes, security- or migration-dominated work, or whenever splitting would make review and delivery harder. Use contract-first mode when durable boundaries can be agreed independently, implementation is substantial but mostly replaceable, multiple consumers depend on the contract, or a preview can let humans validate the resulting experience.
 
-Record the chosen mode in the PR metadata when using contract-first mode. Do not force every change into two stages.
+Record the chosen mode in the PR metadata when using contract-first mode. Do not force every change into multiple stages, and do not use a separate structure PR unless human iteration on structure has enough value to justify another gate.
 
 ## Issue handoff
 
@@ -92,6 +92,8 @@ Use before → after wording when it removes ambiguity. State whether the change
 
 Keep this section succinct. Do not list private helpers, handlers, ORM models, view types, internal refactors, or other replaceable implementation mechanics unless they materially alter the contract, compatibility, risk, or review strategy. If no durable boundary changed, do not add an empty section merely to satisfy a template.
 
+In contract-first mode, these durable boundaries are the agent's minimum initial contract—not a ceiling on human review. During iteration, a human may deliberately promote internal structure such as view/view-model types, modules, ownership, state flow, protocols, concurrency boundaries, or test seams into the agreed contract. Record those under **Agreed structure**, not **Boundary changes**, so externally durable contracts remain distinguishable from human-selected implementation constraints.
+
 ## Stacking
 
 Use a stack only when an unavoidable dependency prevents clean independent PRs. Prefer independent PRs or one reasonably sized PR when either is easier to review and merge.
@@ -119,41 +121,68 @@ Do not mark a child ready as though it were independently mergeable when its par
 
 ### Contract-first stacks
 
-The first PR is the human-reviewed contract:
+The agent begins with the smallest useful human-review surface. Its initial draft covers the durable boundary checklist, user journey, documentation, examples, and only the structure already required by repository conventions or necessary to make the contract concrete.
+
+The first PR is normally the human-reviewed contract:
 
 ```markdown
 - **Advances:** [PROJECT-123 Problem title](https://linear.app/example/issue/PROJECT-123/problem-title)
 - **Mode:** Contract
 - **Followed by:** [#102 Implement the agreed contract](https://github.com/example/repository/pull/102)
 
-> **In plain terms:** This defines the behavior and interfaces for human agreement. It does not implement them yet.
+> **In plain terms:** This proposes the behavior, boundaries, and selected structure for human agreement. It does not implement them yet.
+
+## Boundary changes
+- Hard-to-change external and user-facing contracts.
+
+## Agreed structure
+- Internal structure deliberately included during human iteration, when any.
 ```
 
-The contract PR may include public signatures, schema or protocol definitions, user documentation, CLI help, UI flows or prototypes, examples, fixtures, contract tests, and the minimum stubs needed to compile. Keep stubs inert, unreachable, or feature-gated; they must not falsely expose unfinished behavior. Make the PR safe to land independently or keep it draft and coordinate its merge with the implementation. Do not merge a broken build, failing placeholder tests, or a production-visible nonfunctional contract.
+The contract PR may include public signatures, schema or protocol definitions, user documentation, CLI help, UI flows or prototypes, examples, fixtures, contract tests, and the minimum stubs needed to compile. A human may add or reshape structural details during iteration—for example views and view models, module seams, protocols, state ownership, data flow, concurrency isolation, or test seams. Once explicitly agreed, those choices are part of the contract even if they are not public APIs.
 
-Humans iterate deeply on this PR's durable boundaries and user journey. Keep replaceable internal design out unless it constrains the contract. Record explicit agreement; lack of comments is not approval.
+Keep stubs inert, unreachable, or feature-gated; they must not falsely expose unfinished behavior. Make the PR safe to land independently or keep it draft and coordinate its merge with the implementation. Do not merge a broken build, failing placeholder tests, or a production-visible nonfunctional contract. Record explicit agreement; lack of comments is not approval.
 
-The child PR is the evidence-led implementation:
+Use a three-level stack only when structural exploration is substantial enough to deserve its own review surface:
+
+1. **Boundary PR** — agent-drafted hard-to-change external contracts and user journey, then human agreement.
+2. **Structure PR** — human-guided internal shape such as modules, types, view/view-model responsibilities, ownership, protocols, and test seams.
+3. **Implementation PR** — remaining behavior behind the agreed boundary and structure.
+
+```markdown
+- **Advances:** [PROJECT-123 Problem title](https://linear.app/example/issue/PROJECT-123/problem-title)
+- **Mode:** Structure
+- **Depends on:** [#101 Agree the durable boundaries](https://github.com/example/repository/pull/101)
+- **Followed by:** [#103 Implement the agreed structure](https://github.com/example/repository/pull/103)
+
+> **In plain terms:** This proposes the internal shape humans want to maintain. It does not fill in the implementation yet.
+```
+
+Do not create a structure PR just to distribute line count or predesign every helper. Include only structure a human asks to explore, structure that crosses important ownership or concurrency seams, or structure that would be disruptive to change after implementation spreads through the codebase.
+
+The final child is the evidence-led implementation:
 
 ```markdown
 - **Closes:** [PROJECT-123 Problem title](https://linear.app/example/issue/PROJECT-123/problem-title)
 - **Mode:** Implementation
-- **Implements:** [#101 Define the agreed contract](https://github.com/example/repository/pull/101)
+- **Implements:** [#101 Agree the durable boundaries](https://github.com/example/repository/pull/101)
+- **Implements:** [#102 Agree the maintainable structure](https://github.com/example/repository/pull/102)
 
-> **In plain terms:** This makes the agreed behavior available to use and provides a way to experience it.
+> **In plain terms:** This fills in the agreed behavior and structure and provides a way to experience it.
 
 ## Try it
 - Preview, experimental build, artifact, or reproducible local journey.
 
-## Boundary drift
-- None.
+## Contract drift
+- **Boundary:** None.
+- **Structure:** None.
 ```
 
-Base the implementation branch on the contract branch. Do not repeat the contract in the child description; describe implementation evidence, material trade-offs, and how to experience the result. Automated agents and CI should inspect implementation mechanics deeply even when human review is focused on contract conformance and live behavior.
+Base every child on its actual parent. Do not repeat the boundary or structure contract in child descriptions; describe only that PR's delta, evidence, material trade-offs, and experience path. Automated agents and CI should inspect implementation mechanics deeply even when human review is focused on contract conformance and live behavior.
 
-Implementation must not silently change the agreed boundary. If implementation reveals a contract flaw, update the contract PR, explain the drift, and obtain renewed agreement before treating the child as ready. “Opaque” or “compiled” implementation is a review emphasis—not an exemption from security, correctness, or human inspection.
+Implementation must not silently change any agreed layer. If it reveals a boundary or structure flaw, update the owning parent PR, explain the drift, and obtain renewed agreement before treating descendants as ready. “Opaque” or “compiled” implementation is a review emphasis—not an exemption from security, correctness, or human inspection.
 
-Merge the contract before its child and preserve both commit histories. Ensure the contract is safe during any interval between merges, commonly through inert stubs or feature gating. If the platform cannot provide a live preview, supply the best honest substitute—such as a local command, artifact, screenshots, or recording—and state the limitation.
+Merge boundary, optional structure, and implementation PRs in order while preserving every stage's commit history. Ensure each parent is safe during any interval between merges, commonly through inert stubs or feature gating. If the platform cannot provide a live preview, supply the best honest substitute—such as a local command, artifact, screenshots, or recording—and state the limitation.
 
 ## Commits, history, and authorship
 

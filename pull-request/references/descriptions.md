@@ -31,8 +31,8 @@ Put issue and stack relationships before **In plain terms**, one per line:
 - **Issue** — neutral association.
 - **Depends on** — a parent PR that must land first.
 - **Followed by** — a known child PR.
-- **Mode** — **Contract** or **Implementation** in a contract-first stack.
-- **Implements** — the agreed contract PR implemented by this child.
+- **Mode** — **Contract** or **Implementation** in the normal two-level stack; **Boundary**, **Structure**, or **Implementation** in a three-level stack.
+- **Implements** — an agreed boundary, structure, or combined contract PR implemented by this child.
 
 Do not summarize the linked issue or contract. Only use closing automation when the PR genuinely resolves the whole issue.
 
@@ -49,7 +49,7 @@ Write one short paragraph for non-engineers such as product managers, support, a
 
 ## Summary
 
-Explain the implementation at the level reviewers need:
+Explain this PR's delta at the level reviewers need:
 
 - lead with behavior and meaningful design choices;
 - include important scope boundaries, compatibility, rollout, or failure behavior;
@@ -78,6 +78,19 @@ Use one succinct bullet per changed boundary. Describe the externally observable
 
 Do not add an empty “No boundary changes” section unless the repository template requires one.
 
+## Agreed structure
+
+Use this only in contract-first work when a human deliberately wants internal structure included in the review contract. Keep it separate from externally durable boundaries.
+
+```markdown
+## Agreed structure
+- `DeviceView` owns rendering and user intent; `DeviceViewModel` owns loading and state transitions.
+- The view model receives a `DeviceEvents` protocol rather than constructing transport dependencies.
+- UI state remains main-actor isolated.
+```
+
+Include only selected high-leverage seams such as modules, type responsibilities, ownership, data flow, protocols, concurrency isolation, or test seams. Do not enumerate private helpers or predesign implementation detail merely to make the section look complete.
+
 ## Tests
 
 Record what was actually run and the result implied by the PR's current commit. Include focused commands, manual validation, or a concise explanation when tests were not run. Do not list intended, stale, or unrelated validation.
@@ -104,11 +117,12 @@ Add only when useful:
 ## Try it
 - Preview, experimental build, artifact, or reproducible local journey.
 
-## Boundary drift
-- `None`, or a link to the contract update and renewed agreement.
+## Contract drift
+- **Boundary:** `None`, or a link to the boundary update and renewed agreement.
+- **Structure:** `None`, or a link to the structure update and renewed agreement.
 ```
 
-Use **Try it** and **Boundary drift** for contract-first implementation PRs. Omit them from ordinary PRs when they add no value.
+Use **Try it** and **Contract drift** for contract-first implementation PRs. Omit them from ordinary PRs when they add no value. In a two-level stack, omit the **Structure** line when no internal structure was promoted into the contract.
 
 ## Examples
 
