@@ -36,7 +36,7 @@ This repository contains two main components:
 Clone this repository and symlink the skills into your Claude home directory:
 
 ```bash
-git clone https://github.com/joannis/skills.git
+git clone https://github.com/wendylabsinc/claude-skills.git
 ln -s "$(pwd)/skills" ~/.claude/skills
 ```
 
