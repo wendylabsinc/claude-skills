@@ -75,6 +75,18 @@ Expected behavior stated in a bug report belongs in the problem description; do 
 
 Before creating or updating an issue, remove every sentence that cannot be traced to the request, cited evidence, direct observation, or an explicit human decision.
 
+### Pull request handoff
+
+The issue remains the canonical problem statement when implementation starts. Do not rewrite it into a retrospective solution specification and do not repeat its content in the pull request description.
+
+Instead, the pull request links to the issue at the top using the relationship that is actually true:
+
+```markdown
+- **Closes:** [PROJECT-123 Problem title](https://linear.app/example/issue/PROJECT-123/problem-title)
+```
+
+Use **Closes** only when the PR fully resolves the issue, **Advances** when it delivers only part, **Related** for contextual association, or **Issue** when a neutral link is appropriate. The PR's following **In plain terms** paragraph describes only what that PR changes for people, including any material trade-off; the linked issue supplies the problem context.
+
 ## CLI configuration
 
 CLI commands require `LINEAR_ISSUE_SORT` to be set:
