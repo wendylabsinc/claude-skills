@@ -15,9 +15,9 @@ This skill owns PR mechanics. Mode selection, human-agreement stages, implementa
 
 Read the repository's contributor guidance, PR template, required checks, and merge policy first. A repository-specific convention takes precedence over this default.
 
-Treat committing, pushing, opening or updating a draft, starting remote CI, marking ready, merging, and deploying as distinct mutations. Perform only the stages actually authorized. Do not disturb unrelated dirty state or add opportunistic cleanup.
+Treat local commits, pushing, opening or updating a draft, starting remote CI, marking ready, merging, and deploying as distinct mutations. Perform only the stages actually authorized. Do not disturb unrelated dirty state or add opportunistic cleanup.
 
-For contract-first Stages 1–2, the `agentic-development` skill's local-first feedback loop controls publication cadence. Instructions below about what to do after a push never authorize the push itself and must not interrupt rapid local human iteration.
+For contract-first Stages 1–2, the `agentic-development` skill authorizes small isolated local commits while its local-first feedback loop controls publication cadence. Local commits do not authorize a push and do not trigger PR maintenance or remote CI. Instructions below about what to do after a push never authorize the push itself and must not interrupt rapid local human iteration.
 
 ## Issue links and titles
 
