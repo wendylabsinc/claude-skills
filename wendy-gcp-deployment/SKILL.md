@@ -53,10 +53,24 @@ Default region: **`us-central1`** (current home; movable given a real use case �
 - **VMs are leaned against**, for one specific reason: once spun up, nobody maintains the OS. A VM is acceptable **only** if the OS is completely maintenance-free (e.g. Container-Optimized OS with automated updates, MIGs with automated image rotation). If the plan involves a human ever SSHing in to patch it, it's not an option.
 - **Databases:** the cheapest thing that meets requirements. Read `references/cost.md` — it exists because of a real incident (expensive Cloud SQL clusters provisioned for apps that didn't need them).
 
+## Network shape (preferred for bigger projects)
+
+Source of truth: Linear doc [Wendy Network Architecture](https://linear.app/wendylabsinc/document/wendy-network-architecture-2d114f8c6c19) (WDY-2840, approved 2026-09-03). Anything with multiple services, VMs, or a database gets this shape.
+
+**Carve-out:** a single, fully-native deployment (e.g. Firebase Hosting, a lone Cloud Run service behind an ALB) does **not** carry the strict VPC requirements below. Dual-stack (rule 6) remains required even there.
+
+1. **Per-project custom-mode VPCs**, deliberately separate — authority isolation. Never the auto-mode `default` VPC; delete it from projects we control.
+2. **Cross-project service traffic only via Private Service Connect** — one published service, one direction, consumer-allowlisted. Never VPC peering (firewall rules can't reference peer SAs/tags; CIDR coupling).
+3. **Databases/caches private-only.** Cloud SQL: no public IP, `sslMode: ENCRYPTED_ONLY`, PSC preferred. Valkey/Memorystore: transit encryption + AUTH.
+4. **Egress deny-by-default**, with per-service-account egress firewall rules (v4/v6 symmetric). Every service gets an explicit egress class: zero / allowlist / broad-443. Cloud NAT for v4 egress; a service granted v6 egress carries external v6 + deny-all ingress.
+5. **No public IPs on VMs.** Ingress only through LB forwarding rules; operator access via IAP, never public SSH/RDP.
+6. **Dual-stack (IPv6+IPv4) is mandatory** for everything we build — LB frontends, MIGs, VMs. Internal v6 is ULA (`ipv6AccessType=INTERNAL`) by default; AAAA records on every public host. Only exception: a written one, for Google-managed endpoints with no v6 path (Cloud SQL, Memorystore internals).
+7. **Server certs:** endpoints reachable by default-trust clients (browsers, generic tooling) use Let's Encrypt (lego DNS-01); endpoints called exclusively by wendy software may use pki-core-issued certs. The exact machine-endpoint policy is still being finalized on WDY-2840 — apply the principle, don't hardcode per-host assignments.
+
 ## Deployment workflow
 
 1. Requirements interview (above).
-2. Design: compute, data, IAM (custom roles per `references/iam-polp.md`), DNS (`references/dns.md`), dev/prod stacks.
+2. Design: compute, data, network shape (above), IAM (custom roles per `references/iam-polp.md`), DNS (`references/dns.md`), dev/prod stacks.
 3. Bootstrap privileged resources (deploy SA, custom role, WIF binding) via the human's own gcloud, with their approval per command. If the human lacks permission: produce the exact commands + a use-case writeup to hand to an admin (template in `references/iam-polp.md`).
 4. Pulumi program — Go preferred, GCS state backend, KMS secrets provider, conventions in `references/pulumi.md`.
 5. GitHub Actions workflow — OIDC only, per `references/github-oidc.md`. Also invoke the `github-actions` skill when writing the workflow.
@@ -71,6 +85,8 @@ Default region: **`us-central1`** (current home; movable given a real use case �
 | "It'll need Cloud SQL HA when it grows" | Provision for today's requirements. Growth is a config change, not a sunk cost. |
 | "Skipping dev, it's a small app" | Small apps get semver-tagged prod deploys too. Skipping the split is a decision the user makes, with a reason. |
 | "The zone probably has no record with this name" | `gcloud dns record-sets list` takes two seconds. Check. |
+| "VPC peering is simpler than PSC" | Peered firewalls can't reference the peer's SAs/tags, and CIDRs couple. PSC publishes one service, one direction, allowlisted. |
+| "IPv4-only for now, v6 later" | Dual-stack is mandatory from day one. The only exception is a written one for Google-managed endpoints with no v6 path. |
 
 ## Red flags — stop and reconsider
 
@@ -80,3 +96,5 @@ Default region: **`us-central1`** (current home; movable given a real use case �
 - You picked a region, tier, or project name the user never confirmed
 - Your design has no `-dev` stack and the user never said why
 - You're about to create a DNS record without listing existing ones first
+- Your design uses the `default` VPC, VPC peering, or a public IP on a VM or database
+- An LB frontend, MIG, or public host is IPv4-only with no written exception
