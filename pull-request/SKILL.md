@@ -19,6 +19,22 @@ Treat local commits, pushing, opening or updating a draft, starting remote CI, m
 
 For contract-first Stages 1–2, the `agentic-development` skill authorizes small isolated local commits while its local-first feedback loop controls publication cadence. Local commits do not authorize a push and do not trigger PR maintenance or remote CI. Instructions below about what to do after a push never authorize the push itself and must not interrupt rapid local human iteration.
 
+## Human-facing references
+
+Whenever mentioning an issue, pull request, workflow run, release, project, initiative, or comparable tracked artifact to a human, include its current title, scoped identifier, and direct link. Never report only `PROJECT-123`, `#42`, or a run number. Resolve titles from the source instead of guessing. In normal Markdown, link the combined identifier and title, for example `[PROJECT-123 — Problem title](https://...)` or `[repository #42 — Delivered outcome](https://...)`.
+
+For Slack, give each artifact its own two-line block with the title bolded, followed by the scoped identifier, then the bare URL:
+
+```text
+*Problem title* PROJECT-123
+https://tracker.example/PROJECT-123
+
+*Delivered outcome* repository #42
+https://github.com/example/repository/pull/42
+```
+
+After a full introduction, use “the issue” or “that PR” rather than repeating a bare identifier.
+
 ## Issue links and titles
 
 When an issue exists, link it at the top instead of repeating its content:
