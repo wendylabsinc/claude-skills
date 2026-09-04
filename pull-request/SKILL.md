@@ -15,7 +15,25 @@ This skill owns PR mechanics. Mode selection, human-agreement stages, implementa
 
 Read the repository's contributor guidance, PR template, required checks, and merge policy first. A repository-specific convention takes precedence over this default.
 
-Treat pushing, opening a draft, marking ready, merging, and deploying as distinct mutations. Perform only the stages actually authorized. Do not disturb unrelated dirty state or add opportunistic cleanup.
+Treat local commits, pushing, opening or updating a draft, starting remote CI, marking ready, merging, and deploying as distinct mutations. Perform only the stages actually authorized. Do not disturb unrelated dirty state or add opportunistic cleanup.
+
+For contract-first Stages 1–2, the `agentic-development` skill authorizes small isolated local commits while its local-first feedback loop controls publication cadence. Local commits do not authorize a push and do not trigger PR maintenance or remote CI. Instructions below about what to do after a push never authorize the push itself and must not interrupt rapid local human iteration.
+
+## Human-facing references
+
+Whenever mentioning an issue, pull request, workflow run, release, project, initiative, or comparable tracked artifact to a human, include its current title, scoped identifier, and direct link. Never report only `PROJECT-123`, `#42`, or a run number. Resolve titles from the source instead of guessing. In normal Markdown, link the combined identifier and title, for example `[PROJECT-123 — Problem title](https://...)` or `[repository #42 — Delivered outcome](https://...)`.
+
+For Slack, give each artifact its own two-line block with the title bolded, followed by the scoped identifier, then the bare URL:
+
+```text
+*Problem title* PROJECT-123
+https://tracker.example/PROJECT-123
+
+*Delivered outcome* repository #42
+https://github.com/example/repository/pull/42
+```
+
+After a full introduction, use “the issue” or “that PR” rather than repeating a bare identifier.
 
 ## Issue links and titles
 
@@ -128,7 +146,7 @@ For every stack:
 - update bases and links as parents merge;
 - avoid overlapping edits that create cascading conflicts;
 - do not present a child as independently mergeable while its parent is unresolved;
-- merge in dependency order without casually rewriting published history.
+- preserve the stage commits even when review-only parents are not independently merged.
 
 Contract-first work uses one of these shapes:
 
@@ -136,6 +154,10 @@ Contract-first work uses one of these shapes:
 Contract → Implementation
 Boundary → Structure → Implementation   # rare
 ```
+
+Every contract layer is real code at an exact commit: declarations, protocol or schema definitions, migrations, types, stubs, mocks, fixtures, views, view models, tests, examples, or previews. PR prose and standalone design documents may explain or index that code, but they are not the contract and cannot replace it.
+
+The code must occupy its intended final modules and files under ordinary production names. Do not create review-only `Contract`, `Structure`, `Proposal`, `Spec`, or `Stub` source files, namespaces, or catch-all containers unless that name is genuinely part of the final product architecture. A structure layer is the real program skeleton with implementation bodies and replaceable private helpers omitted; its child fills those holes instead of replacing the skeleton.
 
 Represent the layers mechanically:
 
@@ -156,7 +178,7 @@ Represent the layers mechanically:
 - **Implements:** [#102 Agree the structure](...)
 ```
 
-The contract or boundary PR records **Boundary changes**. Selected internal seams use **Agreed structure** in the combined contract or optional structure PR. The implementation PR links rather than repeats them and includes:
+The contract or boundary PR records **Boundary changes** and points reviewers to the concrete contract code. Selected internal seams use **Agreed structure** in the combined contract or optional structure PR, but the actual type and module stubs remain authoritative. The implementation PR links rather than repeats them and includes:
 
 ```markdown
 ## Try it
@@ -167,7 +189,7 @@ The contract or boundary PR records **Boundary changes**. Selected internal seam
 - **Structure:** None.
 ```
 
-Omit inapplicable structure lines in a two-level stack. When drift exists, link the owning parent update and renewed agreement. The `agentic-development` skill defines when these layers are appropriate and how agreement works.
+Omit inapplicable structure lines in a two-level stack. When drift exists, link the owning parent update and renewed agreement. A contract PR is a review surface and does not need to be independently deployable; the `agentic-development` skill defines safe final integration, mode selection, and agreement workflow.
 
 ## Commits, history, and authorship
 
@@ -182,9 +204,9 @@ Preserve original history and author metadata whenever practical:
 
 When merging is authorized, prefer a merge commit because it preserves commits, ordering, and authors. Do not squash-merge by default, especially with multiple authors. Use squash or rebase merge only when explicitly requested or required by repository policy; preserve required attribution and make the history loss or rewrite clear.
 
-## Keep the PR current after every push
+## Keep the PR current after every authorized publication push
 
-After every push:
+After every explicitly authorized publication push:
 
 1. Re-read the cumulative diff against the current base.
 2. Update the title if delivered scope changed.
@@ -196,7 +218,9 @@ Never let the description claim work absent from the branch or omit material beh
 
 ## CI and feedback
 
-After every push, watch relevant CI and automated review to terminal states. Inspect failures, cancellations, skipped required checks, stale checks, and all feedback channels:
+After every explicitly authorized publication push, ensure relevant CI and automated review eventually reach terminal states. During active contract-first Stages 1–2, do not block the human's local experience loop waiting for remote checks and do not publish another revision merely to satisfy intermediate automated feedback. Reconcile the published candidate's checks and feedback before requesting exact-commit agreement or presenting the PR as ready.
+
+Inspect failures, cancellations, skipped required checks, stale checks, and all feedback channels:
 
 - human reviews, inline threads, and PR comments;
 - tests, lint, documentation, contract generation, migrations, and compatibility;
