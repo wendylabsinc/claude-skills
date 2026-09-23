@@ -8,7 +8,7 @@ references:
 
 # Wendy Certificates
 
-How principals in the Wendy ecosystem get, renew, and lose certificates. **pki-core is the sole issuer** — every cert it mints binds a client-held key, never a bare identity claim. Which cert type a flow needs depends on *where authorization will be enforced*: a cloud-facing cert stays identity-only because cloud authorizes live against its own mutable state, while a device-facing cert must carry entitlements because the device has no live authority to consult when offline (§4.2). Full flow-level detail — including how the two credential shapes interact with the rest of the AAA contract — lives in the `wendy-aaa-interop` skill; this skill is the certificate-request/renewal/revocation slice of it.
+How principals in the Wendy ecosystem get, renew, and lose certificates. **pki-core is the sole issuer** — every cert it mints binds a client-held key, never a bare identity claim. Which cert type a flow needs depends on *where authorization will be enforced*: the cloud-facing cert stays identity-only because cloud authorizes live against its own mutable state, while any cert used where there is no live authority to consult offline — an operator's cert for direct field/USB device access — must carry entitlements; device certs are identity-only, and entitlements ride on operator certs only (§4.2). Full flow-level detail — including how the two credential shapes interact with the rest of the AAA contract — lives in the `wendy-aaa-interop` skill; this skill is the certificate-request/renewal/revocation slice of it.
 
 ## Decision Table: Which Cert / Which Path
 
@@ -43,7 +43,7 @@ an incomplete feature.
 
 ## Source of Truth
 
-This skill distills the **AAA Contract v0.12** (draft). The contract has since moved on: its own header now reads **v0.21, Approved 2026-08-29**. This skill has not been re-reconciled against it, so where they differ the contract wins.
+This skill distills the **AAA Contract v0.21** (Approved 2026-08-29).
 The living contract lives in Linear: [AAA Contract — Authentication, Authorization, Accounting](https://linear.app/wendylabsinc/document/aaa-contract-authentication-authorization-accounting-v021-dff5a8351650).
 It is versioned and evolving: check it for flow-level detail, and if it disagrees with this skill, **the contract wins** — then update this skill.
 

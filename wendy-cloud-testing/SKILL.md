@@ -126,7 +126,7 @@ Swift broker or pki-core needed. Approximately 60 tests across 8 suites.
 ## What to Check Each Iteration
 
 1. Run `make test-swift` — any failures are the primary signal.
-2. Check broker logs: `cat /tmp/swift-broker.log | grep -iE "error|fatal|panic" | tail -30`
+2. With `make dev-local`, broker logs go only to the launcher terminal (`swift/scripts/start-local.sh` runs the broker in the background on stdout; no log file). Read them there.
 3. With `make dev-docker`, check container logs: `docker compose logs --since 10m swift-broker 2>/dev/null | grep -iE "error|fatal|panic" | tail -20`
 4. Check device reachability: `wendy discover --json 2>&1 | head -10`
 

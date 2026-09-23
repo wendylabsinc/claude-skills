@@ -41,7 +41,7 @@ an incomplete feature.
 
 ## Source of Truth
 
-This skill distills the **AAA Contract v0.12** (draft). The contract has since moved on: its own header now reads **v0.21, Approved 2026-08-29**. This skill has not been re-reconciled against it, so where they differ the contract wins.
+This skill distills the **AAA Contract v0.21** (Approved 2026-08-29).
 The living contract lives in Linear: [AAA Contract — Authentication, Authorization, Accounting](https://linear.app/wendylabsinc/document/aaa-contract-authentication-authorization-accounting-v021-dff5a8351650).
 It is versioned and evolving: check it for flow-level detail, and if it disagrees with this skill, **the contract wins** — then update this skill.
 

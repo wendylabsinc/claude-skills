@@ -13,8 +13,8 @@ pki-core already has the target shape, and the other two services are adopting i
 
 ## Where cloud and wendy-auth stand
 
-- **wendy-auth** has landed it: `admin_audit_log` is written atomically with its mutation, hash-chained (migration `0026`), with signed checkpoints and an `AuditChainVerifier` that re-walks a chain.
-- **cloud** has adopted it: `audit_logs` rows are hash-chained (`row_hash`/`prev_hash`) with ML-DSA-65-signed periodic checkpoints.
+- **wendy-auth** has landed it (W5): `admin_audit_log` is written atomically with its mutation, hash-chained (migration `0026`), with signed checkpoints and an `AuditChainVerifier` that re-walks a chain.
+- **cloud** has adopted it (on main since 2026-08-14): `audit_logs` rows are hash-chained (`chain_id`/`seq`/`prev_hash`/`row_hash`, enforced by a trigger; migration `services/migrations/000058_audit_chain.up.sql`) with ML-DSA-65-signed periodic checkpoints in `audit_checkpoints` (`swift/Sources/GrantKit/AuditCheckpoint.swift`, WDY-2548), verified and served by `swift/Sources/GRPCServices/AuditChainVerifier.swift` and `AuditCheckpointService.swift`. v0.21 (§9, §12, D13) states only the contract minimum — durable, in-order, tamper-evident append; cloud's current state exceeds it.
 
 Status drifts as work lands — confirm against the codebase before stating it in a review.
 

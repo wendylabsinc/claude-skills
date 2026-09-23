@@ -14,8 +14,8 @@ The AAA contract defines *who is trusted for what* across the control-plane serv
 
 | Service | Owns | Does NOT own |
 |---|---|---|
-| **wendy-auth** | Authentication; the identity graph (tenant + user + group(s)); IdP federation; issuance of identity assertions (tokens/SETs) | Authorization decisions; certificates; entitlements |
-| **Wendy Cloud** | Authorization (group→role→entitlement mapping) + org-native lifecycle + orchestration | Authentication of humans; minting any private key or certificate |
+| **wendy-auth** | Authentication; the identity graph (tenant + user + group(s)); IdP federation; issuance of identity assertions (tokens/SETs); the realm's own lifecycle (creation, tenant-identity minting, suspension, deletion) and exclusive ownership of a verified email domain | Authorization decisions; certificates; entitlements |
+| **Wendy Cloud** | Authorization (group→role→entitlement mapping) + org-native lifecycle within a tenant + orchestration | Authentication of humans; minting any private key or certificate; minting tenant identity; initiating realm creation, suspension, or deletion |
 | **pki-core** | Certificate issuance/revocation; enforcement of the platform + per-tenant policy ceiling; the cryptographic root of tenant isolation | Deciding *who* a principal is (defers to wendy-auth) or *what* they may do (defers to cloud), except as bounded by policy caps |
 | **wendy-proxy** | Pure enforcement: fronting the image registries, deriving tenant scope from the device cert, enforcing a live per-device image assignment | Any issuance; any authorization decision of its own |
 
@@ -49,7 +49,7 @@ Transport (mTLS peer, or GCP-WI-OIDC on the inter-service fabric) names the *ser
 ## Two Credential Shapes
 
 - **Cloud-facing = identity-only.** Carries the SPIFFE identity, no entitlements. Cloud authorizes *live* against its own mutable state — more containable than a baked-in snapshot; embedding entitlements here would only make a stolen key harder to contain.
-- **Device-facing, direct field/USB access = entitlement-bearing X.509.** Used only for direct operator→device access with no cloud in the loop; the offline enforcement point has no live authz to consult, so entitlements travel with the credential: grammar `entitlement:{category}:{permission}:{effect}`, deny-wins, vocabulary = the wendy-agent gRPC method set ∪ cloud-defined entitlements. The **cloud-mediated device path** (postbox polling §5.3, image pull §5.7) uses an **identity-only** device cert + operator-signed requests / live checks instead.
+- **Entitlement-bearing operator credential, obtained through cloud = for direct operator→device access (field/USB).** An operator never holds a *device* certificate; cloud attaches an authorization grant and pki-core embeds the entitlements in this operator cert, used only when no cloud is in the loop at use time. The offline enforcement point has no live authz to consult, so entitlements travel with the credential: grammar `entitlement:{category}:{permission}:{effect}`, deny-wins, vocabulary = the wendy-agent gRPC method set ∪ cloud-defined entitlements. The **cloud-mediated device path** (postbox polling §5.3, image pull §5.7) uses an **identity-only** device cert + operator-signed requests / live checks instead.
 
 (§4.2)
 
@@ -66,7 +66,7 @@ an incomplete feature.
 
 ## Source of Truth
 
-This skill distills the **AAA Contract v0.12** (draft). The contract has since moved on: its own header now reads **v0.21, Approved 2026-08-29**. This skill has not been re-reconciled against it, so where they differ the contract wins.
+This skill distills the **AAA Contract v0.21** (Approved 2026-08-29).
 The living contract lives in Linear: [AAA Contract — Authentication, Authorization, Accounting](https://linear.app/wendylabsinc/document/aaa-contract-authentication-authorization-accounting-v021-dff5a8351650).
 It is versioned and evolving: check it for flow-level detail, and if it disagrees with this skill, **the contract wins** — then update this skill.
 

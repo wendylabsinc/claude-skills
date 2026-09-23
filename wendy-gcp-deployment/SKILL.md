@@ -45,7 +45,13 @@ Shape the design to the answers. When requirements are modest, the infrastructur
 | `wendy-pki-services` | pki-core frontends |
 | `cloud-c7e56` | SaaS cloud stack; hosts the `*.wendy.sh` and `*.wendy.dev` DNS zones (except pki-core's delegated `pki.wendy.dev` zone — see `references/dns.md`) |
 
-Default region: **`us-central1`** (current home; movable given a real use case — ask, don't switch unilaterally).
+Regions are set per repo in each stack's Pulumi yaml (`<project>:region`). Read it there; don't assume one default:
+
+- **pki-core:** `europe-west4` (every foundation and platform stack, dev and prod).
+- **cloud, wendy-auth:** `us-central1` for compute (every stack, including foundation).
+- **PSC:** the pki-core fabric producer (service attachment) is in `europe-west4`. The consumer endpoints in cloud and wendy-auth are created in the attachment's region, `europe-west4`, and use global access so `us-central1` Cloud Run can reach them. That is a fact about PSC placement, not the compute region of those repos.
+
+Changing a repo's region needs a real use case — ask, don't switch unilaterally.
 
 ## Compute selection
 
