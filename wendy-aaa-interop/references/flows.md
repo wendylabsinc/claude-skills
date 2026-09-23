@@ -34,8 +34,9 @@ Deliberately summaries, not mirrors of the contract. Read the Linear contract (s
 
 ## 5.5 Tenant creation
 
-- Cloud orchestrates end-to-end; no single service can create a tenant unilaterally: cloud creates the org record → pki-core `CreateCustomerCA` mints a tenant UUID + CA hierarchy → wendy-auth provisions the realm bound to that UUID.
-- `pki_tenant_uuid` is set once at provision and is **immutable** — the anchor for cryptographic tenant isolation, resolved by UUID and never by the renameable realm slug (`org_id`).
+- wendy-auth owns sign-up end-to-end and is the **sole minter** of `tenant_uuid`: it creates the realm, mints the UUID in the same write, and calls pki-core `CreateTenant {slug, tenant_uuid}` at realm birth, fail-closed — wendy-auth's service account is the only authorized caller (WDY-2979); cloud is not in this path.
+- Cloud never mints or creates a tenant. At the admin's first sign-in it **adopts** `tenant_uuid` from the token claim and creates its org record lazily then — a resolvable sign-in creates an org, and any failure to do so is a named error, never an empty success.
+- `tenant_uuid` is set once at realm creation and is **immutable** — the anchor for cryptographic tenant isolation, resolved by UUID and never by the renameable realm slug (`org_id`). Realms predating this ruling may carry no `tenant_uuid`; they're linked by an explicit, audited platform-admin assignment in wendy-auth, never an automatic derivation.
 - Signup completes with an admin invite email; the admin sets a credential and signs into cloud's global dashboard client.
 
 ## 5.6 Policy ceilings

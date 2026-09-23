@@ -13,8 +13,8 @@ pki-core already has the target shape, and the other two services are adopting i
 
 ## Where cloud and wendy-auth stand
 
-- **wendy-auth** has landed it: `admin_audit_log` is written atomically with its mutation, hash-chained (migration `0026`), with signed checkpoints and an `AuditChainVerifier` that re-walks a chain.
-- **cloud** has adopted it: `audit_logs` rows are hash-chained (`row_hash`/`prev_hash`) with ML-DSA-65-signed periodic checkpoints.
+- **wendy-auth** has landed it (W5): `admin_audit_log` is written atomically with its mutation, hash-chained (migration `0026`), with signed checkpoints and an `AuditChainVerifier` that re-walks a chain.
+- **cloud has not yet followed**: `audit_logs` is still best-effort, mutable rows (a write failure is logged, not fatal) — it has not gained hash-chaining or durable in-order append (§9, §12, D13).
 
 Status drifts as work lands — confirm against the codebase before stating it in a review.
 
