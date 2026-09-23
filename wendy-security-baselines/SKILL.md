@@ -33,6 +33,11 @@ Invariants any interop PR must respect, regardless of which side of the AAA cont
 - Proof-of-possession rides as per-request signing: JWS or COSE_Sign1, algorithm ML-DSA per RFC 9964, default leaf **ML-DSA-65** — never bearer-on-wire (§4.1, D17).
 - Explicitly **not** RFC 9421 HTTP Message Signatures — its registry has no ML-DSA algorithm, which would force a private, non-interoperable `alg` (§4.1).
 - Service accounts and CI get the identical operator cert flow through a different front door, never a weaker bearer-token shortcut (D17).
+- A `cnf`-bound token accepted without verifying its proof is a defect. Bound tokens go on the wire as DPoP (RFC 9449), never `Bearer`.
+
+> **Known gaps, closing.** Both are transitional, not precedent. The enforcement flip is tracked as WDY-3107, gated on the console DPoP check.
+> - wendy-auth: "Plain-Bearer (`dpop_bound: false`, no `cnf`) is an explicit per-client opt-out, not a default." (`docs/architecture.md:66`)
+> - cloud: "cnf is recorded, not enforced... until then a bound token is accepted as a bearer token" (`docs/security-model.md:377-378`)
 
 ## Keys: client-generated, non-exportable, hardware where possible
 
@@ -55,8 +60,8 @@ an incomplete feature.
 
 ## Source of Truth
 
-This skill distills the **AAA Contract v0.12** (draft, pending engineering approval).
-The living contract lives in Linear: [AAA Contract — Authentication, Authorization, Accounting](https://linear.app/wendylabsinc/document/aaa-contract-authentication-authorization-accounting-v012-dff5a8351650).
+This skill distills the **AAA Contract v0.12** (draft). The contract has since moved on: its own header now reads **v0.21, Approved 2026-08-29**. This skill has not been re-reconciled against it, so where they differ the contract wins.
+The living contract lives in Linear: [AAA Contract — Authentication, Authorization, Accounting](https://linear.app/wendylabsinc/document/aaa-contract-authentication-authorization-accounting-v021-dff5a8351650).
 It is versioned and evolving: check it for flow-level detail, and if it disagrees with this skill, **the contract wins** — then update this skill.
 
 ## Related Skills

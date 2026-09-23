@@ -14,7 +14,7 @@ wendy-agent's prime directive against the SaaS stack: **apply a change only when
 
 - **Poll-only.** The device polls cloud's postbox for changes; it never accepts a pushed change. There is no code path where cloud calls the device to mutate its state (§5.3).
 - **Device presents its own mTLS cert.** To cloud (postbox poll) and to wendy-proxy (image pull) alike, the device authenticates with its own hardware-backed certificate. Cloud never holds a certificate of its own to act as a principal (§5.3, §5.7).
-- **No registry credential or token ever on-device.** Images come only through wendy-proxy; the device never talks to a registry directly and never stores a pull credential (§5.7).
+- **No registry credential or token ever on-device.** Images come only through wendy-proxy; the device never talks to a registry directly and never stores a pull credential (§5.7). wendy-proxy is planned, not live yet: see `references/image-pull.md`.
 - **Independent verifiability.** Nothing is applied on the strength of "cloud said so." Every change must be independently checkable by the device: valid operator signature, current freshness, and binding to *this* device — see `references/postbox-verification.md` for the full checklist.
 
 ## Fail-Safe Catalogue
@@ -41,8 +41,8 @@ an incomplete feature.
 
 ## Source of Truth
 
-This skill distills the **AAA Contract v0.12** (draft, pending engineering approval).
-The living contract lives in Linear: [AAA Contract — Authentication, Authorization, Accounting](https://linear.app/wendylabsinc/document/aaa-contract-authentication-authorization-accounting-v012-dff5a8351650).
+This skill distills the **AAA Contract v0.12** (draft). The contract has since moved on: its own header now reads **v0.21, Approved 2026-08-29**. This skill has not been re-reconciled against it, so where they differ the contract wins.
+The living contract lives in Linear: [AAA Contract — Authentication, Authorization, Accounting](https://linear.app/wendylabsinc/document/aaa-contract-authentication-authorization-accounting-v021-dff5a8351650).
 It is versioned and evolving: check it for flow-level detail, and if it disagrees with this skill, **the contract wins** — then update this skill.
 
 ## Related Skills

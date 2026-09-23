@@ -15,7 +15,7 @@ Key purpose must be `ENCRYPT_DECRYPT`; deploy identity needs `roles/cloudkms.cry
 
 ## Stacks & naming
 
-- Two stacks per app: `dev` and `prod`. Same GCP project (for now), split by naming: every resource name carries the stack, e.g. `wendy-status-dev`. Use `ctx.Stack()` in names rather than hardcoding.
+- Two stacks per app: `dev` and `prod`. Same GCP project per repo today (pki-core, cloud and wendy-auth all do this; see SKILL.md), split by naming: every resource name carries the stack, e.g. `wendy-status-dev`. Use `ctx.Stack()` in names rather than hardcoding.
 - Config per stack (`Pulumi.dev.yaml` / `Pulumi.prod.yaml`): image tag, sizing, min-instances. Prod and dev must differ only by config, never by code paths.
 - Image tags: dev deploys `sha-<short>`, prod deploys the semver tag — prod is always traceable to a release.
 
