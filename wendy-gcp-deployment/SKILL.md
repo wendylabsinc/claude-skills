@@ -20,7 +20,7 @@ How Wendy deploys to Google Cloud. **Status: intermediate.** These conventions h
 3. **PoLP via custom IAM roles.** Prefer a custom role with the exact permissions needed over any predefined broad role. Needing to alter one DNS record never justifies `roles/dns.admin`. See `references/iam-polp.md`.
 4. **No service account keys. Ever.** CI authenticates via GitHub OIDC / Workload Identity Federation (`references/github-oidc.md`); workloads use attached service accounts. If you are about to write `credentials_json`, export a key, or suggest one "as a stopgap" — stop; that path does not exist here.
 5. **No GCP credentials client-side.** Frontends, device apps, anything running outside Wendy's server perimeter never holds GCP credentials of any form. Devices get mediated access via server-side proxies minting short-lived downscoped credentials (wendy-proxy pattern). Authority: the AAA contract, `/home/sem/wendy/aaa-contract-*.md` (read the latest version when touching auth between services).
-6. **dev/prod split by default.** Default branch deploys to dev; semver tags (`v*`) deploy to prod. Skip the split only with a stated good reason. Both live in the same GCP project for now, split by resource naming (`-dev` / `-prod` suffixes).
+6. **dev/prod split by default.** Default branch deploys to dev; semver tags (`v*`) deploy to prod. Skip the split only with a stated good reason. Both live in the same GCP project for now, split by resource naming (`-dev` / `-prod` suffixes). Every `v*` tag is a GitHub Release with generated notes. pki-core, wendy-auth and cloud additionally split each env into a **foundation** stack (network, DNS zones, custom IAM roles; applied by hand) and a **platform** stack (applied by CI, whose deploy SA is never widened) — see `references/iam-polp.md`.
 7. **Never clash with pre-existing resources.** Check before creating — especially DNS records (`references/dns.md`) and anything in shared projects.
 
 ## Requirements interview (always first)
@@ -43,7 +43,7 @@ Shape the design to the answers. When requirements are modest, the infrastructur
 | `wendy-auth` | wendy-auth |
 | `wendy-pki-secure` | pki-core engine |
 | `wendy-pki-services` | pki-core frontends |
-| `cloud-c7e56` | SaaS cloud stack; hosts the `*.wendy.sh` and `*.wendy.dev` DNS zones |
+| `cloud-c7e56` | SaaS cloud stack; hosts the `*.wendy.sh` and `*.wendy.dev` DNS zones (except pki-core's delegated `pki.wendy.dev` zone — see `references/dns.md`) |
 
 Default region: **`us-central1`** (current home; movable given a real use case — ask, don't switch unilaterally).
 
@@ -57,7 +57,7 @@ Default region: **`us-central1`** (current home; movable given a real use case �
 
 Source of truth: Linear doc [Wendy Network Architecture](https://linear.app/wendylabsinc/document/wendy-network-architecture-2d114f8c6c19) (WDY-2840, approved 2026-09-03). Anything with multiple services, VMs, or a database gets this shape.
 
-**Carve-out:** a single, fully-native deployment (e.g. Firebase Hosting, a lone Cloud Run service behind an ALB) does **not** carry the strict VPC requirements below. Dual-stack (rule 6) remains required even there.
+**Carve-out:** a single, fully-native deployment (e.g. Firebase Hosting, a lone Cloud Run service) does **not** carry the strict VPC requirements below. Dual-stack (rule 6) remains required even there.
 
 1. **Per-project custom-mode VPCs**, deliberately separate — authority isolation. Never the auto-mode `default` VPC; delete it from projects we control.
 2. **Cross-project service traffic only via Private Service Connect** — one published service, one direction, consumer-allowlisted. Never VPC peering (firewall rules can't reference peer SAs/tags; CIDR coupling).

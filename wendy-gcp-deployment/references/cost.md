@@ -23,7 +23,7 @@ Cost-consciousness is a MUST. The bill is reviewed; over-provisioning is treated
 
 ## Other recurring-cost traps
 
-- **Global external ALB:** the forwarding rule alone has a fixed monthly cost (order of ~$20/mo) before traffic. For a small internal service, consider Cloud Run domain mapping (free, but requires one-time domain verification and is region-constrained) or IAP on Cloud Run directly. Present the tradeoff; let the user pick.
+- **No ALBs.** Wendy ingress is regional passthrough NLB + MIG (dual-stack); ALBs are not used anywhere. For a small internal service, consider Cloud Run domain mapping (free, but requires one-time domain verification and is region-constrained) or IAP on Cloud Run directly. Present the tradeoff; let the user pick.
 - **Static IPs** reserved but unattached bill hourly.
 - **VPC connectors, NAT gateways:** standing hourly cost. Avoid needing them (public-IP Cloud SQL via the connector/auth-proxy path needs no VPC connector).
 - **Artifact Registry:** storage billed per GiB — set a cleanup policy (keep last N versions) on repos with frequent pushes.

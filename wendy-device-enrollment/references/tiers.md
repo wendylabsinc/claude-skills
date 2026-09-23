@@ -12,10 +12,10 @@ Tier is a **capability/trust + (re)enrollment** axis, set by the device's **hard
 
 Tier is independent of:
 
-- **Deployment** — `field_mode` / `offline_bundle`. A Tier-A box on a forest pole is still Tier A, just field-mode.
+- **Deployment** — e.g. a long validity window via over-duration approval, or `offline_bundle` (reserved, not yet emitted). A Tier-A box on a forest pole is still Tier A.
 - **Provisioning method** — client-generated key (default) vs. the server-keygen-over-USB fallback for a device that genuinely cannot keygen (§5.2).
 
-These extensions are recorded separately on purpose: `device_trust_tier` for the tier, `field_mode`/`offline_bundle` for deployment.
+These extensions are recorded separately on purpose: `device_trust_tier` for the tier, `offline_bundle` (reserved) for deployment. The device `field_mode` extension no longer exists (D16 dropped).
 
 ## Protocol and Custody Binding
 

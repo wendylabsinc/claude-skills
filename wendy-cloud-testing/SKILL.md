@@ -1,6 +1,6 @@
 ---
 name: wendy-cloud-testing
-description: 'Wendy Cloud testing skill — supplies test commands, stack setup, and failure-mode knowledge for the cloud monorepo. Use when: (1) running Swift broker or Go services integration tests, (2) checking whether the local dev stack is healthy, (3) diagnosing enrollment or certificate errors, (4) verifying device reachability. Pair with /wendy-iterating to drive a continuous fix loop.'
+description: 'Wendy Cloud testing skill — supplies test commands, stack setup, and failure-mode knowledge for the cloud monorepo. Use when: (1) running Swift broker integration tests, (2) checking whether the local dev stack is healthy, (3) diagnosing enrollment or certificate errors, (4) verifying device reachability. Pair with /wendy-iterating to drive a continuous fix loop.'
 ---
 
 # Wendy Cloud Testing
@@ -48,7 +48,7 @@ echo "All prerequisites satisfied."
 
 | Repo | Location | Purpose |
 |------|----------|---------|
-| cloud | `/Users/wendy/Documents/Projects/cloud` | Main monorepo (dashboard, services, swift) |
+| cloud | `/Users/wendy/Documents/Projects/cloud` | Main monorepo (console, swift broker, infra). `main` = current codebase; `legacy` = old Firebase prod, frozen |
 | pki-core | `/Users/wendy/Documents/Projects/pki-core` | PKI certificate authority engine |
 
 ## Stack Architecture
@@ -59,8 +59,7 @@ echo "All prerequisites satisfied."
 |------|---------|-------|
 | 50051 | Swift broker | Plaintext gRPC |
 | 50052 | Swift tunnel-broker | One-way TLS |
-| 50061 | Go services (host-remapped) | Avoids conflict with Swift broker |
-| 9200 | Dashboard | Next.js |
+| 8080 | Swift broker HTTP | Video REST/WebSocket |
 | 9400 | Envoy | gRPC-web proxy |
 | 9443 | pki-core | Certificate issuance |
 | 9300 | Postgres | Primary database |
@@ -69,59 +68,26 @@ echo "All prerequisites satisfied."
 
 ```bash
 cd /Users/wendy/Documents/Projects/cloud
-
-# Start Docker Compose services
-make dev &
-sleep 30
-
-# Start the Swift broker on host
-cd swift && ./scripts/start-local.sh > /tmp/swift-broker.log 2>&1 &
-sleep 10
+make dev-local    # broker built on the host (fast rebuilds)
+# or: make dev-docker   # broker in Docker, no Swift toolchain needed
 ```
+
+Both are zero-parameter: Postgres, Swift broker + tunnel-broker, gRPC-web Envoy,
+dev user/org seed. There is no separate Go `services` container any more.
 
 Verify:
 ```bash
-lsof -iTCP:50051 -iTCP:50052 -iTCP:9200 -sTCP:LISTEN -nP 2>/dev/null | grep -E "50051|50052|9200"
+lsof -iTCP:50051 -iTCP:50052 -iTCP:9400 -sTCP:LISTEN -nP 2>/dev/null | grep -E "50051|50052|9400"
 ```
 
-Note: `start-local.sh` falls back to port 9402 for the Swift Envoy container when
-port 9400 is already occupied by the docker-compose `envoy` container. Set
-`NEXT_PUBLIC_GRPC_ENDPOINT=http://localhost:9402` in `dashboard/.env.local` in that case.
-
-### Recreating docker-compose.override.yml
-
-If `docker-compose.override.yml` does not exist at the repo root, create it:
-
-```yaml
-services:
-  pki-core:
-    build:
-      context: ../pki-core
-      dockerfile: Dockerfile
-    healthcheck:
-      disable: true
-
-  dashboard:
-    environment:
-      - GRPC_SERVER_ENDPOINT=http://envoy:8080
-      - NEXT_PUBLIC_DEV_AUTH_ENABLED=true
-      - DEV_AUTH_ENABLED=true
-      - NEXT_PUBLIC_APP_URL=http://localhost:9200
-
-  services:
-    ports:
-      - "50061:50051"
-      - "50062:50052"
-    environment:
-      PKICORE_ENABLED: "false"
-      FIREBASE_AUTH_DISABLED: "true"
-      PROVISIONING_JWT_SECRET: "local-dev-jwt-secret-change-in-prod"
-```
-
-`PROVISIONING_JWT_SECRET` must match `JWT_SECRET` in `swift/scripts/start-local.sh`
-(both default to `"local-dev-jwt-secret-change-in-prod"`).
+The launcher copies `docker-compose.override.yml.example` to
+`docker-compose.override.yml` on first run; edit that copy rather than writing one by hand.
 
 ## Authenticating the CLI Against the Local Stack
+
+> **Known broken end to end (WDY-2330)** per cloud `docs/local-dev.md`: the broker only
+> trusts wendy-auth realm JWKS, so the HS256 Dev Login token is rejected (`UNAUTHENTICATED`).
+> Treat this flow as its shape, not a working path, until `console/` replaces it.
 
 Run once per session:
 
@@ -149,25 +115,19 @@ cd /Users/wendy/Documents/Projects/cloud
 make test-swift 2>&1 | tail -40
 ```
 
-Filter to a specific test:
+Filter to a specific test (the Makefile target has no `FILTER` knob):
 ```bash
-make test-swift FILTER=TestCreateAsset
+cd swift && swift test --filter <TestName>
 ```
 
 Tests use BrokerFixture (in-process gRPC, MockPKIServer, real Postgres). No real
 Swift broker or pki-core needed. Approximately 60 tests across 8 suites.
 
-### Go services tests
-
-```bash
-make test-services 2>&1 | tail -40
-```
-
 ## What to Check Each Iteration
 
 1. Run `make test-swift` — any failures are the primary signal.
 2. Check broker logs: `cat /tmp/swift-broker.log | grep -iE "error|fatal|panic" | tail -30`
-3. Check Go services logs: `docker compose logs --since 10m services 2>/dev/null | grep -iE "error|fatal|panic" | tail -20`
+3. With `make dev-docker`, check container logs: `docker compose logs --since 10m swift-broker 2>/dev/null | grep -iE "error|fatal|panic" | tail -20`
 4. Check device reachability: `wendy discover --json 2>&1 | head -10`
 
 ## Clean Definition
@@ -175,7 +135,7 @@ make test-services 2>&1 | tail -40
 An iteration is clean when ALL of the following hold:
 
 - `make test-swift` reports 0 failures
-- No `error|fatal|panic` lines in broker or services logs from the last check interval
+- No `error|fatal|panic` lines in broker logs from the last check interval
 - `wendy discover` returns at least one device (or device testing is explicitly skipped)
 
 ## Common Failure Modes
@@ -186,10 +146,8 @@ An iteration is clean when ALL of the following hold:
 | `connection pool exhausted` | Postgres default max_connections (100) hit | Set pool size to 1 in TestDB.swift |
 | Handler not registered in BrokerFixture | Handler created but never added to test server | Register handler in BrokerFixture.swift |
 | `Address already in use` on :50051 or :50052 | Previous broker process still running | `pkill -f start-local.sh; pkill -f /.build/.*broker; sleep 2` |
-| `invalid or expired enrollment token` | `PROVISIONING_JWT_SECRET` mismatch between services container and start-local.sh | Set `PROVISIONING_JWT_SECRET: "local-dev-jwt-secret-change-in-prod"` in docker-compose.override.yml |
 | `unknown profile "operator-tier-a"` | pki-core profile name mismatch | Use profile `"operator"` in CertificateServiceHandler.swift |
 | `certificate is not valid for client authentication` | Production CLI cert missing clientAuth Extended Key Usage | Known cloud PKI bug; use local stack for testing |
-| Swift Envoy fails to start on port 9400 | docker-compose envoy already owns port 9400 | start-local.sh auto-falls-back to 9402; set NEXT_PUBLIC_GRPC_ENDPOINT=http://localhost:9402 |
 
 ## Device Testing (Optional)
 

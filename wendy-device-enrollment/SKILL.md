@@ -28,7 +28,7 @@ See `references/first-touch.md` for the full mechanics of both, plus post-expiry
 
 Renewal is **unattended and automatic** over ACME/EST — a human factor cannot gate a turbine. Every renewal gets an in-flight disabled-check: pki-core refuses to re-issue a disabled/deregistered/revoked device.
 
-Device **field mode** is set in Wendy Cloud, not by the device, and is live-checked by pki-core at each renewal (D16). It escalates nothing — no added entitlement or authority — its only effect is a longer validity window for a "not always online" device, bounded by tenant policy and the platform cap.
+A "not always online" device that needs a longer validity window gets it through **over-duration approval (four-eyes)**: authorized once, inherited on every renewal, no live cloud call. It escalates nothing — no added entitlement or authority — and stays bounded by tenant policy and the platform cap. The earlier D16 cloud-set, live-checked device field mode was dropped, not deferred.
 
 ## Self-Hosted Rule (mandatory)
 
