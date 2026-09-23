@@ -70,6 +70,6 @@ New methods (per-device assignment query, checkpoint publication, TSA) are added
 
 ## §6 SSF fan-out summary
 
-- **Transmitter:** wendy-auth. **Receivers:** cloud (all removals: session-revoked, account-disabled, account-purged, token-claims-change, credential-change) and pki-core (only the cert-relevant subset: account-disabled, account-purged, driving its in-flight disabled-check).
+- **Transmitter:** wendy-auth. **Receivers:** cloud (all removals: session-revoked, account-disabled, account-purged, token-claims-change, credential-change, realm-suspended, realm-deleted) and pki-core (only the cert-relevant subset: account-disabled, account-purged, realm-suspended, realm-deleted, driving its in-flight disabled-check).
 - **Fail-safe only, never grants.** The SSF push stream carries revoke/downgrade/deprovision/session-kill only — a compromised node can over-revoke (detectable DoS) but never escalate. Any authority increase stays on the in-band, two-key path (§3, §5.6).
 - v1 delivery is best-effort (`PushSecurityEventAck{jti, accepted}`, idempotent on replay) — acceptable because revoke-only means a dropped SET fails safe.
