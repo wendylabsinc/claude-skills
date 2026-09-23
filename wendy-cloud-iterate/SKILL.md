@@ -212,7 +212,7 @@ Tests use BrokerFixture (in-process gRPC, MockPKIServer, real Postgres). No real
 ### What to check each iteration
 
 1. Run `make test-swift` — any failures are the primary signal.
-2. Check broker logs for runtime errors: `cat /tmp/swift-broker.log | grep -iE "error|fatal|panic" | tail -30`
+2. Check broker logs for runtime errors. With `make dev-local` they go only to the launcher terminal (`swift/scripts/start-local.sh` runs the broker in the background on stdout; no log file). With `make dev-docker`: `docker compose logs --since 10m swift-broker 2>/dev/null | grep -iE "error|fatal|panic" | tail -20`
 3. Run `wendy discover --json 2>&1 | head -10` — verify Gerrit (wendyos-gerrit.local) is reachable if hardware testing is the goal.
 
 ### Fix workflow — worktree per fix, pull request required
