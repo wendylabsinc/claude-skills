@@ -8,7 +8,7 @@ references:
 
 # Wendy Certificates
 
-How principals in the Wendy ecosystem get, renew, and lose certificates. **pki-core is the sole issuer** — every cert it mints binds a client-held key, never a bare identity claim. Which cert type a flow needs depends on *where authorization will be enforced*: the cloud-facing cert stays identity-only because cloud authorizes live against its own mutable state, while any cert used where there is no live authority to consult offline — an operator's entitlement-bearing cert for direct field/USB device access, or a device's own cert — must carry entitlements (§4.2). Full flow-level detail — including how the two credential shapes interact with the rest of the AAA contract — lives in the `wendy-aaa-interop` skill; this skill is the certificate-request/renewal/revocation slice of it.
+How principals in the Wendy ecosystem get, renew, and lose certificates. **pki-core is the sole issuer** — every cert it mints binds a client-held key, never a bare identity claim. Which cert type a flow needs depends on *where authorization will be enforced*: the cloud-facing cert stays identity-only because cloud authorizes live against its own mutable state, while any cert used where there is no live authority to consult offline — an operator's cert for direct field/USB device access — must carry entitlements; device certs are identity-only, and entitlements ride on operator certs only (§4.2). Full flow-level detail — including how the two credential shapes interact with the rest of the AAA contract — lives in the `wendy-aaa-interop` skill; this skill is the certificate-request/renewal/revocation slice of it.
 
 ## Decision Table: Which Cert / Which Path
 
