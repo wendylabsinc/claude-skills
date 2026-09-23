@@ -28,7 +28,7 @@ See `references/first-touch.md` for the full mechanics of both, plus post-expiry
 
 Renewal is **unattended and automatic** over ACME/EST — a human factor cannot gate a turbine. Every renewal gets an in-flight disabled-check: pki-core refuses to re-issue a disabled/deregistered/revoked device.
 
-Device **field mode** is set in Wendy Cloud, not by the device, and is live-checked by pki-core at each renewal (D16). It escalates nothing — no added entitlement or authority — its only effect is a longer validity window for a "not always online" device, bounded by tenant policy and the platform cap.
+A "not always online" device that needs a longer validity window gets it through **over-duration approval (four-eyes)**: authorized once, inherited on every renewal, no live cloud call. It escalates nothing — no added entitlement or authority — and stays bounded by tenant policy and the platform cap. The earlier D16 cloud-set, live-checked device field mode was dropped, not deferred.
 
 ## Self-Hosted Rule (mandatory)
 
@@ -39,8 +39,8 @@ an incomplete feature.
 
 ## Source of Truth
 
-This skill distills the **AAA Contract v0.12** (draft, pending engineering approval).
-The living contract lives in Linear: [AAA Contract — Authentication, Authorization, Accounting](https://linear.app/wendylabsinc/document/aaa-contract-authentication-authorization-accounting-v012-dff5a8351650).
+This skill distills the **AAA Contract v0.12** (draft). The contract has since moved on: its own header now reads **v0.21, Approved 2026-08-29**. This skill has not been re-reconciled against it, so where they differ the contract wins.
+The living contract lives in Linear: [AAA Contract — Authentication, Authorization, Accounting](https://linear.app/wendylabsinc/document/aaa-contract-authentication-authorization-accounting-v021-dff5a8351650).
 It is versioned and evolving: check it for flow-level detail, and if it disagrees with this skill, **the contract wins** — then update this skill.
 
 ## Related Skills

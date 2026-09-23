@@ -26,7 +26,7 @@ Deliberately summaries, not mirrors of the contract. Read the Linear contract (s
 
 ## 5.4 Enrollment & renewal
 
-- Device tiers A/B/C are a capability/trust + (re)enrollment axis set by the hardware envelope — orthogonal to deployment (`field_mode`/`offline_bundle`) and to provisioning method.
+- Device tiers A/B/C are a capability/trust + (re)enrollment axis set by the hardware envelope — orthogonal to deployment (over-duration approval, `offline_bundle`) and to provisioning method.
 - **Online** first touch: operator requests an enrollment token via cloud → pki-core mints a device- and tenant-bound, single-use token; the device redeems it (Tiers A/B via ACME EAB key, Tier C via lightweight EST/CSR).
 - **Offline/airgapped** first touch: device emits a CSR on the operator's PC → operator-signed request → cloud grant → pki-core mint — the same grant-bearing mint machinery as post-expiry re-enrollment.
 - **No roll-forward**: renewal requires presenting a currently valid cert; an expired cert cannot silently re-credential.

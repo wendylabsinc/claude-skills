@@ -40,7 +40,7 @@ Per-app isolation in `wendy-customer` is deliberate: one app's deploy identity m
 
 ## Bootstrap flow (privileged setup)
 
-Creating custom roles, SAs, WIF pools/bindings requires privileges the deploy identity must never hold. Flow:
+Creating custom roles, SAs, WIF pools/bindings requires privileges the deploy identity must never hold. In pki-core, wendy-auth and cloud this is the **foundation** Pulumi stack (custom roles, network, DNS zones), applied by hand, never by CI; CI applies only the **platform** stack. Elsewhere:
 
 1. Do it via **the human's own gcloud credentials**, locally, with the user approving each privileged command. Enable required APIs here too (`gcloud services enable ...`) — the pipeline never gets `serviceusage` permissions.
 2. **If the human lacks permissions**, don't escalate creatively. Produce an admin handoff:

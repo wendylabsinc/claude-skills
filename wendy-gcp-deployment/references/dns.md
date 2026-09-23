@@ -1,6 +1,6 @@
 # DNS — wendy.sh / wendy.dev
 
-The `*.wendy.sh` and `*.wendy.dev` managed zones live in the cloud project (`cloud-c7e56`) — always. Apps in other projects that need records reach across projects with a narrowly-scoped identity; the zones never move.
+The `*.wendy.sh` and `*.wendy.dev` managed zones live in the cloud project (`cloud-c7e56`). Exception: pki-core's foundation stack owns its own public parent zone (`pki.wendy.dev` in prod) in `wendy-pki-services`, NS/DS-delegated from the `wendy.dev` apex by cloud foundation. Apps in other projects that need records reach across projects with a narrowly-scoped identity; the zones never move.
 
 ## Rules
 
