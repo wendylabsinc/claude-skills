@@ -99,7 +99,7 @@ Do not add an empty “No boundary changes” section unless the repository temp
 
 ## Agreed structure
 
-Use this only in contract-first work when a human deliberately wants internal structure included in the review contract. Keep it separate from externally durable boundaries.
+Use this only in contract-first work when a human deliberately wants internal structure included in the review contract. Keep it separate from externally durable boundaries. This prose summarizes the decision; concrete module, type, protocol, view, view-model, mock, or test stubs in the diff are the authoritative contract.
 
 ```markdown
 ## Agreed structure
@@ -108,7 +108,7 @@ Use this only in contract-first work when a human deliberately wants internal st
 - UI state remains main-actor isolated.
 ```
 
-Include only selected high-leverage seams such as modules, type responsibilities, ownership, data flow, protocols, concurrency isolation, or test seams. Do not enumerate private helpers or predesign implementation detail merely to make the section look complete.
+Include only selected high-leverage seams such as modules, type responsibilities, ownership, data flow, protocols, concurrency isolation, or test seams. Do not enumerate private helpers or predesign implementation detail merely to make the section look complete. A prose-only **Agreed structure** section without corresponding code is not a structure contract.
 
 ## Tests
 
