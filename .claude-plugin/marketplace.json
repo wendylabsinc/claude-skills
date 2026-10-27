@@ -114,14 +114,15 @@
         {
             "name": "wendy",
             "source": "./wendy",
-            "description": "Expert guidance on building and deploying apps to WendyOS edge devices",
+            "description": "Build and deploy apps to robots and edge devices with Wendy (wendy.dev): WendyOS, the Wendy CLI, entitlements and simulators",
             "category": "development",
             "keywords": [
                 "wendyos",
                 "edge-computing",
                 "arm64",
                 "jetson",
-                "raspberry-pi"
+                "raspberry-pi",
+                "robotics"
             ]
         },
         {
