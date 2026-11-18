@@ -214,6 +214,10 @@ Treat credible security, privacy, credential, data-loss, and supply-chain findin
 
 ## Ready and merge mechanics
 
+When an agent resumes work on an open PR, mark it draft first (`gh pr ready --undo`) before making changes, committing, or pushing. Work, commit, and push only while the PR is draft; never leave it ready while pushing.
+
+When the work is finished and self-reviewed, mark the PR ready only with the required human authorization and after the readiness checks below pass. Honor an explicit instruction to keep it draft.
+
 Present a PR as ready only when its description matches the diff, required checks are green, actionable feedback is addressed, invalid findings have evidence-backed resolution, dependencies and material rollout concerns are explicit, and the branch is conflict-free.
 
 Do not approve or present a red, dirty, conflicting, stale, blocked, or misleading PR as ready. Before an authorized merge, recheck status, reviews, base branch, dependency order, and merge strategy.
